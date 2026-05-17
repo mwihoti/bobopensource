@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BobOpenSource Presentation</title>
+    <style>
+      :root {
+        --bg: #08111f;
+        --panel: #0f1b2d;
+        --panel-soft: #111d30;
+        --text: #edf2ff;
+        --muted: #a7b3cc;
+        --blue: #2f6df6;
+        --green: #24c87a;
+        --line: rgba(255, 255, 255, 0.08);
+        --accent: #66b2ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background: #050915;
+        color: var(--text);
+      }
+
+      @page {
+        size: 13.333in 7.5in;
+        margin: 0;
+      }
+
+      .deck {
+        width: 100%;
+      }
+
+      .slide {
+        width: 13.333in;
+        height: 7.5in;
+        padding: 0.72in;
+        position: relative;
+        overflow: hidden;
+        page-break-after: always;
+        background:
+          radial-gradient(
+            circle at top right,
+            rgba(47, 109, 246, 0.22),
+            transparent 28%
+          ),
+          linear-gradient(135deg, #091323 0%, #08101d 52%, #050915 100%);
+      }
+
+      .slide:last-child {
+        page-break-after: auto;
+      }
+
+      .cover {
+        padding: 0;
+        background: #050915;
+      }
+
+      .cover img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(0.35) saturate(1.1);
+      }
+
+      .cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(4, 8, 18, 0.15), rgba(4, 8, 18, 0.82)),
+          linear-gradient(
+            90deg,
+            rgba(9, 19, 35, 0.92),
+            rgba(9, 19, 35, 0.5) 58%,
+            rgba(9, 19, 35, 0.82)
+          );
+      }
+
+      .cover-content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 0.82in;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.12in;
+        padding: 0.1in 0.2in;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        color: #d9e7ff;
+        font-size: 0.15in;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        background: rgba(10, 17, 31, 0.42);
+      }
+
+      .cover-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 0.5in;
+        align-items: end;
+      }
+
+      .title {
+        font-size: 0.62in;
+        line-height: 1.02;
+        margin: 0.16in 0 0.12in;
+        font-weight: 800;
+      }
+
+      .subtitle {
+        font-size: 0.22in;
+        line-height: 1.5;
+        color: #d2dbf2;
+        max-width: 7.2in;
+      }
+
+      .meta-card,
+      .panel,
+      .stack-card,
+      .result-card {
+        background: rgba(11, 21, 39, 0.74);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0.24in;
+        backdrop-filter: blur(10px);
+      }
+
+      .meta-card {
+        padding: 0.28in;
+      }
+
+      .meta-title {
+        font-size: 0.15in;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #aab8d4;
+        margin-bottom: 0.12in;
+      }
+
+      .meta-card ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .meta-card li {
+        margin-bottom: 0.08in;
+        font-size: 0.18in;
+        color: #f3f6ff;
+      }
+
+      .slide-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.4in;
+      }
+
+      .slide-header h2 {
+        margin: 0.12in 0 0;
+        font-size: 0.4in;
+        line-height: 1.1;
+      }
+
+      .slide-kicker {
+        font-size: 0.16in;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+      }
+
+      .slide-page {
+        font-size: 0.18in;
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      .panel {
+        padding: 0.28in;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.26in;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.22in;
+      }
+
+      .panel h3,
+      .stack-card h3,
+      .result-card h3 {
+        margin: 0 0 0.12in;
+        font-size: 0.21in;
+      }
+
+      .panel p,
+      .panel li,
+      .stack-card li,
+      .result-card li {
+        color: var(--muted);
+        font-size: 0.18in;
+        line-height: 1.45;
+      }
+
+      .panel ul,
+      .stack-card ul,
+      .result-card ul {
+        margin: 0.08in 0 0;
+        padding-left: 0.22in;
+      }
+
+      .highlight {
+        color: #ffffff;
+        font-weight: 700;
+      }
+
+      .star-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.18in;
+        margin-bottom: 0.24in;
+      }
+
+      .star-pill {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        padding: 0.12in 0.18in;
+        font-size: 0.16in;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #dce8ff;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .stack-card,
+      .result-card {
+        padding: 0.24in;
+        background: linear-gradient(
+          180deg,
+          rgba(16, 27, 45, 0.95),
+          rgba(10, 17, 31, 0.95)
+        );
+      }
+
+      .stack-card ul,
+      .result-card ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .stack-card li,
+      .result-card li {
+        margin-bottom: 0.08in;
+        padding-left: 0.16in;
+        position: relative;
+      }
+
+      .stack-card li::before,
+      .result-card li::before {
+        content: "";
+        width: 0.06in;
+        height: 0.06in;
+        border-radius: 50%;
+        background: var(--blue);
+        position: absolute;
+        left: 0;
+        top: 0.09in;
+      }
+
+      .quote {
+        margin-top: 0.18in;
+        padding: 0.18in 0.22in;
+        border-left: 0.05in solid var(--green);
+        background: rgba(36, 200, 122, 0.08);
+        color: #e8fff2;
+        font-size: 0.18in;
+        line-height: 1.55;
+      }
+
+      .footer-bar {
+        position: absolute;
+        left: 0.72in;
+        right: 0.72in;
+        bottom: 0.46in;
+        display: flex;
+        justify-content: space-between;
+        color: rgba(255, 255, 255, 0.48);
+        font-size: 0.15in;
+      }
+
+      .dev-card {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 0.28in;
+        height: 5.45in;
+      }
+
+      .dev-links a {
+        color: #9fc5ff;
+        text-decoration: none;
+      }
+
+      .dev-links li {
+        margin-bottom: 0.12in;
+      }
+
+      .metric-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.18in;
+        margin-top: 0.16in;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 0.18in;
+        padding: 0.18in;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 0.14in;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .metric-value {
+        margin-top: 0.08in;
+        font-size: 0.28in;
+        font-weight: 800;
+      }
+
+      @media screen {
+        body {
+          padding: 16px;
+        }
+
+        .slide {
+          margin: 0 auto 18px;
+          box-shadow: 0 22px 48px rgba(0, 0, 0, 0.34);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="deck">
+      <section class="slide cover">
+        <img
+          src="./bobopensource-cover.png"
+          alt="BobOpenSource UI screenshot"
+        />
+        <div class="cover-content">
+          <div class="eyebrow">PDF Slide Presentation</div>
+          <div class="cover-grid">
+            <div>
+              <div class="slide-kicker">BobOpenSource</div>
+              <h1 class="title">
+                Accelerating Open Source Contributions with AI-Guided Issue
+                Analysis
+              </h1>
+              <p class="subtitle">
+                A developer workflow platform that reads GitHub issues, analyzes
+                repository structure, maps dependencies, guides implementation,
+                and supports authenticated, persistent collaboration through the
+                web.
+              </p>
+            </div>
+            <aside class="meta-card">
+              <div class="meta-title">Presentation Focus</div>
+              <ul>
+                <li>
+                  Product story using the <span class="highlight">STAR framework</span>
+                </li>
+                <li>Platform stacks and technologies</li>
+                <li>
+                  AI workflow includes <span class="highlight">IBM Bob</span> usage in project delivery
+                </li>
+                <li>
+                  Live demo: <span class="highlight">https://bobopensource-live.vercel.app</span>
+                </li>
+                <li>Developer profile and delivery context</li>
+              </ul>
+            </aside>
+          </div>
+          <div class="footer-bar">
+            <span>Prepared for BobOpenSource</span>
+            <span>Daniel Mwihoti • Software Developer</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Executive Summary</div>
+            <h2>What BobOpenSource Is</h2>
+          </div>
+          <div class="slide-page">01</div>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h3>Core Product Vision</h3>
+            <p>
+              BobOpenSource is an
+              <span class="highlight">AI-powered GitHub issue analyzer</span>
+              built to reduce the friction developers face when contributing to
+              unfamiliar codebases.
+            </p>
+            <ul>
+              <li>Reads GitHub issues and issue discussion.</li>
+              <li>
+                Analyzes repository structure, conventions, and dependencies.
+              </li>
+              <li>
+                Generates implementation roadmaps, test guidance, and risk
+                notes.
+              </li>
+              <li>Supports follow-up Q&amp;A through an Ask Bob experience.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Business Value</h3>
+            <ul>
+              <li>
+                Shortens time-to-first-contribution for open source developers.
+              </li>
+              <li>
+                Turns vague GitHub issues into actionable engineering guidance.
+              </li>
+              <li>
+                Improves confidence through risk analysis, code hints, and
+                validation steps.
+              </li>
+              <li>
+                Persists analyses and conversations for repeatable team
+                workflows.
+              </li>
+              <li>
+                Provides a live web experience at
+                <span class="highlight">bobopensource-live.vercel.app</span>.
+              </li>
+            </ul>
+            <div class="quote">
+              BobOpenSource combines repository intelligence, issue
+              understanding, and guided execution into one developer-facing
+              experience.
+            </div>
+          </article>
+        </div>
+        <div class="metric-row">
+          <div class="metric">
+            <div class="metric-label">Inputs</div>
+            <div class="metric-value">Issue URL + Repo</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Outputs</div>
+            <div class="metric-value">Plan + Q&amp;A</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Modes</div>
+            <div class="metric-value">CLI + Web</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Persistence</div>
+            <div class="metric-value">Auth + DB</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <h2>Situation</h2>
+          </div>
+          <div class="slide-page">02</div>
+        </div>
+        <div class="star-strip">
+          <div class="star-pill">Situation</div>
+          <div class="star-pill">Task</div>
+          <div class="star-pill">Action</div>
+          <div class="star-pill">Result</div>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h3>Problem Space</h3>
+            <ul>
+              <li>
+                Developers often want to contribute to open source but lack fast
+                context.
+              </li>
+              <li>
+                GitHub issues may be vague, broad, or disconnected from
+                repository structure.
+              </li>
+              <li>
+                New contributors need to know where to start, which files
+                matter, and how to test changes.
+              </li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Operational Gaps</h3>
+            <ul>
+              <li>Repository onboarding is manual and time-consuming.</li>
+              <li>Dependency and impact analysis is usually done by hand.</li>
+              <li>
+                Planning often becomes generic rather than grounded in actual
+                codebase context.
+              </li>
+            </ul>
+            <div class="quote">
+              The situation called for a tool that could reason about both the
+              GitHub issue and the repository itself.
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <h2>Task</h2>
+          </div>
+          <div class="slide-page">03</div>
+        </div>
+        <div class="star-strip">
+          <div class="star-pill">Situation</div>
+          <div class="star-pill">Task</div>
+          <div class="star-pill">Action</div>
+          <div class="star-pill">Result</div>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h3>Primary Task</h3>
+            <p>
+              Design and implement a platform that translates a GitHub issue
+              into a
+              <span class="highlight">repository-aware implementation plan</span
+              >.
+            </p>
+            <ul>
+              <li>Identify relevant files and components.</li>
+              <li>Recommend code changes and validation steps.</li>
+              <li>Expose the experience in both CLI and web interfaces.</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Secondary Task</h3>
+            <ul>
+              <li>
+                Add an interactive Ask Bob layer for follow-up developer
+                questions.
+              </li>
+              <li>
+                Persist user analyses and responses behind authentication.
+              </li>
+              <li>
+                Make the guidance concrete enough to help a contributor start
+                coding with confidence.
+              </li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <h2>Action</h2>
+          </div>
+          <div class="slide-page">04</div>
+        </div>
+        <div class="star-strip">
+          <div class="star-pill">Situation</div>
+          <div class="star-pill">Task</div>
+          <div class="star-pill">Action</div>
+          <div class="star-pill">Result</div>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h3>Platform Actions</h3>
+            <ul>
+              <li>
+                Built a TypeScript analysis engine for repository scanning,
+                issue parsing, dependency mapping, and implementation planning.
+              </li>
+              <li>
+                Added a Next.js web interface with guided tabs for insights,
+                dependencies, plan, and Ask Bob.
+              </li>
+              <li>
+                Introduced repository-aware code hints, diff previews, risk
+                summaries, and PR draft generation.
+              </li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Product Actions</h3>
+            <ul>
+              <li>
+                Improved remote GitHub analysis with file ranking, README
+                context, and issue discussion capture.
+              </li>
+              <li>
+                Integrated Clerk for GitHub-based login and route protection.
+              </li>
+              <li>
+                Integrated Neon for saved analyses and Ask Bob conversation
+                persistence.
+              </li>
+            </ul>
+            <div class="quote">
+              The action phase focused on making AI guidance useful,
+              inspectable, and durable for real contributors.
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <h2>Result</h2>
+          </div>
+          <div class="slide-page">05</div>
+        </div>
+        <div class="star-strip">
+          <div class="star-pill">Situation</div>
+          <div class="star-pill">Task</div>
+          <div class="star-pill">Action</div>
+          <div class="star-pill">Result</div>
+        </div>
+        <div class="grid-3">
+          <article class="result-card">
+            <h3>Contributor Guidance</h3>
+            <ul>
+              <li>Issue complexity and effort estimation</li>
+              <li>Suggested files and code-path hints</li>
+              <li>Step-by-step implementation roadmap</li>
+            </ul>
+          </article>
+          <article class="result-card">
+            <h3>Execution Support</h3>
+            <ul>
+              <li>Suggested code and test scaffolds</li>
+              <li>Validation checklists and risk notes</li>
+              <li>PR draft output for contributor handoff</li>
+            </ul>
+          </article>
+          <article class="result-card">
+            <h3>Product Outcomes</h3>
+            <ul>
+              <li>Authenticated user experience with Clerk</li>
+              <li>Saved analyses and chats in Neon</li>
+              <li>Interactive Ask Bob workflow for follow-up questions</li>
+            </ul>
+          </article>
+        </div>
+        <div class="quote">
+          Result: BobOpenSource now operates as a guided contribution platform,
+          not just a static analyzer.
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Technology</div>
+            <h2>Stacks and Tools Used</h2>
+          </div>
+          <div class="slide-page">06</div>
+        </div>
+        <div class="grid-3">
+          <article class="stack-card">
+            <h3>Core Engine</h3>
+            <ul>
+              <li>TypeScript</li>
+              <li>Node.js</li>
+              <li>Commander CLI</li>
+              <li>Simple Git</li>
+              <li>Glob and YAML parsing</li>
+            </ul>
+          </article>
+          <article class="stack-card">
+            <h3>Web Platform</h3>
+            <ul>
+              <li>Next.js 16 App Router</li>
+              <li>React 19</li>
+              <li>Framer Motion</li>
+              <li>Lucide React</li>
+              <li>TailwindCSS 4</li>
+            </ul>
+          </article>
+          <article class="stack-card">
+            <h3>Auth and Data</h3>
+            <ul>
+              <li>Clerk for GitHub login</li>
+              <li>Neon Serverless Postgres</li>
+              <li>GitHub API integration</li>
+              <li>JSON persistence of analyses and chats</li>
+            </ul>
+          </article>
+        </div>
+        <div class="grid-3" style="margin-top: 0.22in">
+          <article class="stack-card">
+            <h3>Quality</h3>
+            <ul>
+              <li>TypeScript strict mode</li>
+              <li>Jest</li>
+              <li>ESLint</li>
+              <li>Prettier</li>
+            </ul>
+          </article>
+          <article class="stack-card">
+            <h3>Key Product Capabilities</h3>
+            <ul>
+              <li>Issue parsing</li>
+              <li>Repository analysis</li>
+              <li>Dependency mapping</li>
+              <li>Ask Bob contextual Q&amp;A</li>
+            </ul>
+          </article>
+          <article class="stack-card">
+            <h3>Deployment Readiness</h3>
+            <ul>
+              <li>Web + CLI separation</li>
+              <li>Protected APIs</li>
+              <li>Persistent user records</li>
+              <li>Presentation-ready product story</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Architecture</div>
+            <h2>BobOpenSource Workflow</h2>
+          </div>
+          <div class="slide-page">07</div>
+        </div>
+        <div class="grid-2">
+          <article class="panel">
+            <h3>Processing Flow</h3>
+            <ul>
+              <li>Input GitHub issue URL</li>
+              <li>Analyze repository locally or remotely</li>
+              <li>Parse issue requirements and discussion</li>
+              <li>Build dependency map</li>
+              <li>Generate roadmap, test strategy, and risks</li>
+              <li>Support follow-up questions through Ask Bob</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <h3>Persistence Flow</h3>
+            <ul>
+              <li>Clerk authenticates the user with GitHub</li>
+              <li>Analyze API saves issue analysis into Neon</li>
+              <li>Ask Bob API stores Q&amp;A records linked to the analysis</li>
+              <li>
+                Future extension: saved history and reusable contribution
+                workspaces
+              </li>
+            </ul>
+            <div class="quote">
+              The architecture is designed to turn one-off analysis into a
+              reusable contributor knowledge trail.
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Developer Profile</div>
+            <h2>Daniel Mwihoti</h2>
+          </div>
+          <div class="slide-page">08</div>
+        </div>
+        <div class="dev-card">
+          <article class="panel">
+            <h3>Role</h3>
+            <p class="highlight" style="font-size: 0.28in; margin: 0 0 0.18in">
+              Software Developer
+            </p>
+            <p>
+              Built and evolved BobOpenSource as a developer-focused platform
+              for issue interpretation, implementation guidance, and
+              authenticated knowledge capture.
+            </p>
+            <ul>
+              <li>Product thinking around developer onboarding workflows</li>
+              <li>
+                Full-stack delivery across CLI, web, auth, and persistence
+              </li>
+              <li>
+                Focus on practical AI assistance rather than generic automation
+              </li>
+              <li>
+                Used IBM Bob in the project workflow:
+                <span class="highlight">https://bob.ibm.com/</span>
+              </li>
+            </ul>
+          </article>
+          <article class="panel dev-links">
+            <h3>Professional Links</h3>
+            <ul>
+              <li>
+                <span class="highlight">LinkedIn:</span>
+                <a href="https://www.linkedin.com/in/daniel-mwihoti-3aaa652b9/"
+                  >linkedin.com/in/daniel-mwihoti-3aaa652b9</a
+                >
+              </li>
+              <li>
+                <span class="highlight">GitHub:</span>
+                <a href="https://github.com/mwihoti">github.com/mwihoti</a>
+              </li>
+              <li>
+                <span class="highlight">Project Repo:</span>
+                <a href="https://github.com/mwihoti/bobopensource"
+                  >github.com/mwihoti/bobopensource</a
+                >
+              </li>
+              <li>
+                <span class="highlight">Live App:</span>
+                <a href="https://bobopensource-live.vercel.app"
+                  >bobopensource-live.vercel.app</a
+                >
+              </li>
+              <li>
+                <span class="highlight">IBM Bob:</span>
+                <a href="https://bob.ibm.com/">bob.ibm.com</a>
+              </li>
+            </ul>
+            <h3 style="margin-top: 0.24in">Presentation Summary</h3>
+            <ul>
+              <li>Product: BobOpenSource</li>
+              <li>Format: PDF slide presentation</li>
+              <li>Method: STAR storytelling</li>
+              <li>Development support: IBM Bob</li>
+              <li>Deployment: https://bobopensource-live.vercel.app</li>
+              <li>
+                Audience: product, engineering, portfolio, or demo stakeholders
+              </li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

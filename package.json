@@ -1,0 +1,53 @@
+{
+  "name": "contributos",
+  "version": "1.0.0",
+  "description": "AI-powered tool to accelerate open source contributions by automating repository analysis, issue understanding, and implementation planning",
+  "main": "dist/index.js",
+  "bin": {
+    "contributos": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build",
+    "web": "npm run build && cd web && npm run dev",
+    "cli": "npm run build && node dist/cli.js"
+  },
+  "keywords": [
+    "open-source",
+    "contribution",
+    "repository-analysis",
+    "ai-assistant",
+    "developer-tools"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.5",
+    "simple-git": "^3.22.0",
+    "glob": "^10.3.10",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "next": "16.2.6",
+    "@types/node": "^20.11.5",
+    "@types/inquirer": "^8.2.10",
+    "typescript": "^5.3.3",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "prettier": "^3.2.4",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
