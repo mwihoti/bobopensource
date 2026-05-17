@@ -1,149 +1,212 @@
-# Bob Open Source - AI-Powered GitHub Issue Analyzer
+# BobOpenSource
 
-An intelligent tool that analyzes GitHub issues and generates comprehensive implementation plans by understanding your repository structure, dependencies, and code patterns.
+BobOpenSource is an AI-assisted developer tool for turning GitHub issues into practical contribution guidance.
 
-## Features
+It analyzes a repository, reads the issue, maps likely dependencies, and produces:
+- project overview,
+- suggested files to inspect,
+- implementation roadmap,
+- code and test guidance,
+- risk notes,
+- PR draft suggestions,
+- follow-up help through Ask Bob.
 
-- 🔍 **Issue Analysis**: Automatically extracts requirements, acceptance criteria, and affected components from GitHub issues
-- 🏗️ **Repository Analysis**: Understands your codebase structure, patterns, and dependencies
-- 🗺️ **Dependency Mapping**: Builds a complete dependency graph to identify impact of changes
-- 📋 **Implementation Planning**: Generates step-by-step implementation plans with time estimates
-- ⚠️ **Risk Assessment**: Identifies potential risks and suggests mitigation strategies
-- 🧪 **Test Strategy**: Creates comprehensive testing strategies for your changes
-- 📊 **Multiple Output Formats**: Supports Markdown, JSON, and DOT graph formats
+## Live App
+
+```text
+https://bobopensource-live.vercel.app
+```
+
+## Repository
+
+```text
+https://github.com/mwihoti/bobopensource
+```
+
+## What It Does
+
+BobOpenSource helps developers understand unfamiliar open source issues faster.
+
+Main capabilities:
+- analyze a GitHub issue URL,
+- inspect a local repository or analyze a remote repository structure,
+- generate dependency-aware implementation plans,
+- suggest likely starting files,
+- generate test and validation guidance,
+- support follow-up Q&A through Ask Bob,
+- persist signed-in analysis runs and conversations in Neon.
+
+## Product Modes
+
+### CLI
+
+The CLI can:
+- analyze a repository,
+- analyze an issue,
+- generate an implementation plan,
+- inspect dependency relationships.
+
+### Web App
+
+The web app adds:
+- guided UI for issue analysis,
+- Insights, Dependencies, Plan, and Ask Bob tabs,
+- Clerk GitHub login,
+- Neon-backed persistence for saved analyses and Ask Bob replies.
+
+The web app lives in [web/README.md](/home/mwihotidan/work/bobopensource/web/README.md).
+
+## Core Features
+
+- **Issue Analysis**: extracts requirements, acceptance criteria, labels, and discussion context from GitHub issues
+- **Repository Analysis**: infers project structure, conventions, and likely entry points
+- **Dependency Mapping**: builds change-impact context from repository relationships
+- **Implementation Planning**: generates a developer-facing roadmap with actions, validation, and time estimates
+- **Ask Bob**: answers follow-up questions about files, tests, code paths, docs, and risk
+- **Auth and Persistence**: saves analysis runs and conversations for signed-in users
+
+## Current Stack
+
+### Core
+
+- TypeScript
+- Node.js
+- Commander
+- Simple Git
+- Glob
+- YAML
+
+### Web
+
+- Next.js 16
+- React 19
+- TypeScript
+- Framer Motion
+- Lucide React
+- TailwindCSS 4
+
+### Auth and Data
+
+- Clerk
+- Neon serverless Postgres
+- GitHub API
+
+## How It Works
+
+1. User provides a GitHub issue URL.
+2. BobOpenSource analyzes the target repository locally or remotely.
+3. The issue is parsed into requirements, acceptance criteria, and discussion highlights.
+4. A dependency map and implementation plan are generated.
+5. The web app presents the result as a project overview, roadmap, and Ask Bob experience.
+6. Signed-in web users have analyses and Ask Bob conversations stored in Neon.
 
 ## Installation
 
-```bash
-npm install -g bobopensource
-```
+### Core CLI
 
-Or install locally in your project:
+Install dependencies:
 
 ```bash
-npm install --save-dev bobopensource
+npm install
 ```
 
-## Quick Start
-
-### Analyze an Issue and Generate Implementation Plan
+Build:
 
 ```bash
-bobopensource analyze https://github.com/owner/repo/issues/123
+npm run build
 ```
 
-This will:
-1. Analyze your repository structure
-2. Parse the GitHub issue
-3. Build a dependency map
-4. Generate a complete implementation plan
+Run the CLI:
+
+```bash
+node dist/cli.js --help
+```
+
+### Web App
+
+Start the web app:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+If port `3000` is already in use, Next.js will choose another port.
+
+## CLI Usage
+
+### Analyze an Issue
+
+```bash
+node dist/cli.js analyze https://github.com/owner/repo/issues/123
+```
+
+With a local repository path:
+
+```bash
+node dist/cli.js analyze https://github.com/owner/repo/issues/123 -r /path/to/repo
+```
 
 ### Analyze Repository Only
 
 ```bash
-bobopensource repo
+node dist/cli.js repo
 ```
 
 ### Analyze Issue Only
 
 ```bash
-bobopensource issue https://github.com/owner/repo/issues/123
+node dist/cli.js issue https://github.com/owner/repo/issues/123
 ```
 
-### Generate Implementation Plan
+### Generate a Plan
 
 ```bash
-bobopensource plan https://github.com/owner/repo/issues/123
+node dist/cli.js plan https://github.com/owner/repo/issues/123
 ```
 
-### Analyze File Dependencies
+### Analyze Dependencies
 
 ```bash
-bobopensource deps src/components/Button.tsx src/utils/helpers.ts
+node dist/cli.js deps src/app.ts src/utils.ts
 ```
 
-## Usage
+## Environment Variables
 
-### Full Analysis
+### GitHub
 
-```bash
-# Analyze issue with full context
-bobopensource analyze https://github.com/owner/repo/issues/123
+For higher GitHub API rate limits or private repository access:
 
-# Specify repository path
-bobopensource analyze https://github.com/owner/repo/issues/123 -r /path/to/repo
-
-# Save output to file
-bobopensource analyze https://github.com/owner/repo/issues/123 -o plan.md
-
-# Output as JSON
-bobopensource analyze https://github.com/owner/repo/issues/123 --json
-
-# Skip dependency analysis
-bobopensource analyze https://github.com/owner/repo/issues/123 --no-deps
-
-# Skip implementation plan
-bobopensource analyze https://github.com/owner/repo/issues/123 --no-plan
+```env
+GITHUB_TOKEN=...
 ```
 
-### Repository Analysis
+### Web App Auth and Persistence
 
-```bash
-# Analyze current directory
-bobopensource repo
+Set these in `web/.env.local`:
 
-# Analyze specific repository
-bobopensource repo -r /path/to/repo
-
-# Generate dependency graph (DOT format)
-bobopensource repo --graph -o dependencies.dot
-
-# Output as JSON
-bobopensource repo --json -o analysis.json
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+CLERK_SECRET_KEY=...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+DATABASE_URL=postgres://...
 ```
 
-### Issue Analysis
-
-```bash
-# Analyze issue
-bobopensource issue https://github.com/owner/repo/issues/123
-
-# With repository context
-bobopensource issue https://github.com/owner/repo/issues/123 -r /path/to/repo
-
-# Save to file
-bobopensource issue https://github.com/owner/repo/issues/123 -o issue-analysis.md
-```
-
-### Implementation Plan
-
-```bash
-# Generate plan
-bobopensource plan https://github.com/owner/repo/issues/123
-
-# Save to file
-bobopensource plan https://github.com/owner/repo/issues/123 -o implementation-plan.md
-
-# Output as JSON
-bobopensource plan https://github.com/owner/repo/issues/123 --json
-```
-
-### Dependency Analysis
-
-```bash
-# Show dependencies of files
-bobopensource deps src/app.ts src/utils.ts
-
-# Show affected files (reverse dependencies)
-bobopensource deps src/utils.ts --affected
-
-# Generate dependency graph
-bobopensource deps src/app.ts src/utils.ts --graph
-```
+Notes:
+- `NEON_DATABASE_URL` is also supported as a fallback in the DB helper.
+- GitHub login must be enabled in the Clerk dashboard.
 
 ## Configuration
 
-Create a configuration file in your repository root:
+Create a config file in the repository root:
 
 ### `.bobopensourcerc.json`
 
@@ -161,125 +224,61 @@ Create a configuration file in your repository root:
 }
 ```
 
-### Supported Configuration Files
-
+Supported config files:
 - `.bobopensourcerc`
 - `.bobopensourcerc.json`
 - `.bobopensourcerc.js`
 - `bobopensource.config.js`
 - `bobopensource.config.json`
 
-### Configuration Options
+## Key Paths
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `ignorePatterns` | `string[]` | `['node_modules', 'dist', 'build', '.git', 'coverage']` | Patterns to ignore during analysis |
-| `maxFileSize` | `number` | `1048576` (1MB) | Maximum file size to analyze (in bytes) |
-| `includeTests` | `boolean` | `true` | Whether to include test files in analysis |
+- `src/`
+  Core analyzers, utilities, types, and planning logic
 
-## Output Examples
+- `web/`
+  Next.js product UI, Clerk auth, Neon persistence, and Ask Bob routes
 
-### Implementation Plan
-
-The tool generates a comprehensive implementation plan including:
-
-- **Prerequisites**: What needs to be done before starting
-- **Implementation Steps**: Detailed step-by-step instructions
-- **Test Strategy**: Unit, integration, and E2E test recommendations
-- **Risk Assessment**: Potential risks and mitigation strategies
-- **Time Estimates**: Estimated hours for completion
-- **Review Points**: When to pause for code review
-- **Rollback Strategy**: How to safely revert changes if needed
-
-### Dependency Report
-
-```
-# Dependency Analysis Report
-
-## Overview
-- Total Components: 45
-- Total Dependencies: 123
-- Average Complexity: 3.2
-- High Impact Components: 8
-- Circular Dependencies: 0
-
-## Critical Components (High Change Impact)
-- **src/core/engine.ts**
-  - Dependents: 15
-  - Complexity: 8.5
-
-## Most Complex Components
-- **src/core/engine.ts** (Complexity: 8.5)
-  - Dependencies: 12
-  - Dependents: 15
-```
-
-## How It Works
-
-1. **Repository Analysis**: Scans your codebase to understand structure, patterns, and tech stack
-2. **Issue Parsing**: Extracts requirements, acceptance criteria, and affected components from the issue
-3. **Dependency Mapping**: Builds a complete dependency graph of your codebase
-4. **Impact Analysis**: Identifies all files that will be affected by the changes
-5. **Plan Generation**: Creates a step-by-step implementation plan with time estimates
-6. **Risk Assessment**: Identifies potential risks and suggests mitigation strategies
-7. **Test Strategy**: Recommends comprehensive testing approach
-
-## Supported Project Types
-
-- React / React Native
-- Vue.js / Nuxt.js
-- Angular
-- Node.js / Express
-- TypeScript / JavaScript
-- And more...
-
-## Requirements
-
-- Node.js 14 or higher
-- Git repository
-- GitHub issue URL (for issue analysis)
+- `docs/presentation/`
+  BobOpenSource PDF presentation and cover assets
 
 ## Development
 
+Build the core package:
+
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/bobopensource.git
-
-# Install dependencies
-cd bobopensource
-npm install
-
-# Build
 npm run build
-
-# Run locally
-npm link
-bobopensource --help
 ```
 
-## Contributing
+Typecheck the web app:
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+cd web
+./node_modules/.bin/tsc --noEmit
+```
 
-## License
+Run the web app:
 
-MIT License - see LICENSE file for details
+```bash
+cd web
+npm run dev
+```
 
-## Support
+## Notes
 
-- 📖 [Documentation](https://github.com/yourusername/bobopensource/wiki)
-- 🐛 [Issue Tracker](https://github.com/yourusername/bobopensource/issues)
-- 💬 [Discussions](https://github.com/yourusername/bobopensource/discussions)
-
-## Roadmap
-
-- [ ] GitHub API integration for automatic issue fetching
-- [ ] Support for GitLab and Bitbucket
-- [ ] AI-powered code generation
-- [ ] Integration with project management tools
-- [ ] VS Code extension
-- [ ] Web interface
+- The CLI and the web app share the same core analysis engine.
+- The web app adds authentication, persistence, and a richer developer workflow.
+- Ask Bob can answer questions using generated plan context and can fetch file content on demand for file-specific questions.
 
 ## Credits
 
-Built with ❤️ by the Bob Open Source team# bobopensource
+This project workflow also used:
+- IBM Bob: `https://bob.ibm.com/`
+
+## Developer
+
+Daniel Mwihoti  
+Software Developer
+
+- LinkedIn: `https://www.linkedin.com/in/daniel-mwihoti-3aaa652b9/`
+- GitHub: `https://github.com/mwihoti`
