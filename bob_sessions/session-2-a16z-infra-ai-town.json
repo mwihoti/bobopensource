@@ -1,0 +1,2283 @@
+{
+  "sessionId": "2",
+  "userId": "user_3DqwnJfrouBO8irQgfaAzk29RIG",
+  "issueUrl": "https://github.com/a16z-infra/ai-town/issues/297",
+  "issueTitle": "📝 Integration Proposal: CAJAL — Scientific Paper Agent for AI Town",
+  "repository": "a16z-infra/ai-town",
+  "createdAt": "2026-05-17T13:51:24.803Z",
+  "analysisResult": {
+    "logs": [],
+    "plan": {
+      "issue": {
+        "url": "https://github.com/a16z-infra/ai-town/issues/297",
+        "repo": "ai-town",
+        "type": "feature",
+        "owner": "a16z-infra",
+        "state": "open",
+        "title": "📝 Integration Proposal: CAJAL — Scientific Paper Agent for AI Town",
+        "author": "Agnuxo1",
+        "labels": [],
+        "number": 297,
+        "source": "github-api",
+        "createdAt": "2026-05-04T16:40:13Z",
+        "updatedAt": "2026-05-04T16:40:13Z",
+        "complexity": "low",
+        "description": "## 📝 Integration Proposal: CAJAL — Scientific Paper Agent for AI Town\n\n### What is CAJAL?\n**CAJAL is not a general-purpose chat model.** It is a **specialized scientific paper generation tool** — local, 2GB, producing LaTeX-formatted academic output.\n\n### Part of P2PCLAW\nAgent in [P2PCLAW](https://p2pclaw.com) — 14-agent decentralized research network.\n\n### Why AI Town?\nAI Town simulates agent communities. CAJAL in AI Town:\n- Researcher agent writing papers\n- Peer review agents\n- Conference simulation\n\n### Proposed Integration\n```typescript\n// In AI Town\nconst researcher = new Agent({\n  name: \"CAJAL\",\n  role: \"Scientific Writer\",\n  model: \"cajal-4b\"\n});\n```\n\n### Links\n- 🤗 HF: https://huggingface.co/Agnuxo/CAJAL-4B-P2PCLAW\n- 📁 GH: https://github.com/Agnuxo1/CAJAL\n- 🌐 P2PCLAW: https://p2pclaw.com\n\n— Francisco (@Agnuxo1), P2PCLAW",
+        "requirements": [
+          "Researcher agent writing papers",
+          "Peer review agents",
+          "Conference simulation",
+          "🤗 HF: https://huggingface.co/Agnuxo/CAJAL-4B-P2PCLAW",
+          "📁 GH: https://github.com/Agnuxo1/CAJAL",
+          "🌐 P2PCLAW: https://p2pclaw.com"
+        ],
+        "relatedIssues": [],
+        "acceptanceCriteria": [],
+        "affectedComponents": [
+          "convex/aiTown/agent.ts"
+        ],
+        "discussionHighlights": []
+      },
+      "risks": [
+        {
+          "level": "medium",
+          "impact": "Harder to verify correctness and prevent regressions",
+          "mitigation": [
+            "Create comprehensive test suite",
+            "Add tests before making changes",
+            "Consider adding integration tests"
+          ],
+          "description": "No existing test coverage"
+        }
+      ],
+      "steps": [
+        {
+          "files": [],
+          "title": "Setup and Preparation",
+          "number": 1,
+          "actions": [
+            "Create a new feature branch from main/master.",
+            "Read the issue title, requirements, and acceptance criteria until you can restate the objective as: \"Researcher agent writing papers\".",
+            "Open the first likely implementation files before coding: convex/aiTown/agent.ts.",
+            "Trace where those files are imported or invoked so you understand the full code path that will change.",
+            "Run the project or test baseline once so you know the current behavior before introducing changes."
+          ],
+          "pitfalls": [
+            "Do not start patching the first file you see without tracing where the relevant behavior actually enters the system."
+          ],
+          "resources": [
+            {
+              "type": "command",
+              "title": "Create Branch",
+              "content": "git checkout -b bob/issue-297-integration-proposal-cajal-scientific-pa",
+              "language": "bash",
+              "description": "Suggested branch name based on the issue title."
+            },
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "README Context",
+              "content": "# AI Town 🏠💻💌\n\n[Live Demo](https://www.convex.dev/ai-town)\n\n[Join our community Discord: AI Stack Devs](https://discord.gg/PQUmTBTGmT)\n\n<img width=\"1454\" alt=\"Screen Shot 2023-08-14 at 10 01 00 AM\" src=\"https://github.com/a16z-infra/ai-town/assets/3489963/a4c91f17-23ed-47ec-8c4e-9f9a8505057d\">\n\nAI Town is a virtual town where AI characters live, chat and socialize.\n\nThis project is a deployable starter kit for easily building and customizing your own version of AI\ntown. Inspired by the research paper\n[_Generative Agents: Interactive Simulacra of Human Behavior_](https://arxiv.org/pdf/2304.03442.pdf).\n\nThe primary goal of this project, beyond just being a lot of fun to work on, is to provide a\nplatform with a strong foundation that is meant to be extended. The back-end natively supports\nshared global state, transactions, and a simulation engine and should be suitable from everything\nfrom a simple project to play around with to a scalable, multi-player game. A secondary goal is to\nmake a JS/TS framework available as most simulators in this space (including the original paper\nabove) are written in Python.\n\n## Overview\n\n- 💻 [Stack](#stack)\n- 🧠 [Installation](#installation) (cloud, local, Docker, self-host, Fly.io, ...)\n- 💻️ [Windows Pre-requisites](#windows-installation)\n- 🤖 [Configure your LLM of choice](#connect-an-llm) (Ollama, OpenAI, Together.ai, ...)\n- 👤 [Customize - YOUR OWN simulated world](#customize-your-own-simulation)\n- 👩‍💻 [Deploying to production](#deploy-the-app-to-production)\n- 🐛 [Troubleshooting](#troubleshooting)",
+              "language": "markdown",
+              "description": "Read this first so you understand the project purpose and contributor workflow."
+            }
+          ],
+          "description": "Create feature branch and review existing code",
+          "dependencies": [],
+          "estimatedMinutes": 15,
+          "validationCriteria": [
+            "Feature branch created",
+            "All affected files reviewed",
+            "Development environment ready"
+          ]
+        },
+        {
+          "files": [
+            "convex/aiTown/agent.ts"
+          ],
+          "title": "Implement Changes in agent.ts",
+          "number": 2,
+          "actions": [
+            "Open `convex/aiTown/agent.ts` and identify the exported function, class, or handler that currently owns the behavior closest to: Researcher agent writing papers.",
+            "Trace the inputs, outputs, and adjacent callers around `agent.ts` so you know exactly where the new behavior must be inserted.",
+            "Add the new behavior directly in `agent.ts` while preserving the surrounding public contract unless the issue says otherwise.",
+            "Update the agent decision/prompt/state logic in `agent.ts` so the issue-specific behavior happens through the existing agent lifecycle, not as a separate side path.",
+            "Add or update nearby type guards, return types, or schema handling in `agent.ts` if the new behavior changes data shape.",
+            "Keep the implementation aligned with existing patterns already used in neighboring files to avoid introducing a one-off design."
+          ],
+          "pitfalls": [
+            "Do not add parallel logic paths in `convex/aiTown/agent.ts` if the existing code already has a single place that owns this behavior."
+          ],
+          "resources": [
+            {
+              "path": "convex/aiTown/agent.ts",
+              "type": "file_excerpt",
+              "title": "Current Code: convex/aiTown/agent.ts",
+              "content": "import { ObjectType, v } from 'convex/values';\nimport { GameId, parseGameId } from './ids';\nimport { agentId, conversationId, playerId } from './ids';\nimport { serializedPlayer } from './player';\nimport { Game } from './game';\nimport {\n  ACTION_TIMEOUT,\n  AWKWARD_CONVERSATION_TIMEOUT,\n  CONVERSATION_COOLDOWN,\n  CONVERSATION_DISTANCE,\n  INVITE_ACCEPT_PROBABILITY,\n  INVITE_TIMEOUT,\n  MAX_CONVERSATION_DURATION,\n  MAX_CONVERSATION_MESSAGES,\n  MESSAGE_COOLDOWN,\n  MIDPOINT_THRESHOLD,\n  PLAYER_CONVERSATION_COOLDOWN,\n} from '../constants';\nimport { FunctionArgs } from 'convex/server';\nimport { MutationCtx, internalMutation, internalQuery } from '../_generated/server';\nimport { distance } from '../util/geometry';\nimport { internal } from '../_generated/api';\nimport { movePlayer } from './movement';\nimport { insertInput } from './insertInput';\n\nexport class Agent {\n  id: GameId<'agents'>;\n  playerId: GameId<'players'>;\n  toRemember?: GameId<'conversations'>;\n  lastConversation?: number;",
+              "language": "typescript",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "path": "convex/aiTown/agent.ts",
+              "type": "warning",
+              "title": "Insertion Point Detection",
+              "reason": "Placing helper code before the first exported function keeps the public API block intact.",
+              "content": "Insert near line 289 (68% confidence)\nAnchor: before_first_export\nReason: Placing helper code before the first exported function keeps the public API block intact.",
+              "confidence": 0.68,
+              "description": "Best detected insertion point for the generated code."
+            },
+            {
+              "path": "convex/aiTown/agent.ts",
+              "type": "warning",
+              "title": "Conflict Detection",
+              "content": "No conflicting classes, functions, imports, or types detected in the current file excerpt.",
+              "description": "Potential naming or structural conflicts in the target file."
+            },
+            {
+              "path": "convex/aiTown/agent.ts",
+              "type": "warning",
+              "title": "Style Pattern Analysis",
+              "content": "Indentation: \"  \"\nQuote style: single\nSemicolons: enabled\nTrailing commas: enabled",
+              "description": "Detected local repository style signals used to adapt the snippet."
+            },
+            {
+              "path": "convex/aiTown/agent.ts",
+              "type": "code",
+              "title": "Suggested Code To Add",
+              "content": "// Candidate implementation for issue #297: Researcher agent writing papers\n// Add this inside `Agent`, near `runAgentOperation`.\nprivate shouldWritePaper() {\n  const role = this.description?.toLowerCase() || '';\n  const alreadyWriting = this.activity?.type === 'writePaper';\n  return role.includes('researcher') && !alreadyWriting;\n}\n\nprivate nextResearcherAction() {\n  if (!this.shouldWritePaper()) {\n    return null;\n  }\n\n  return {\n    type: 'writePaper',\n    payload: {\n      topic: this.toRemember,\n    },\n    reason: 'researcher agent should prioritize paper-writing behavior when idle',\n  };\n}\n\n// In runAgentOperation, prefer:\n// const researcherAction = this.nextResearcherAction();\n// if (researcherAction) return researcherAction;\n",
+              "language": "typescript",
+              "description": "Auto-adapted scaffold matched to the detected repo style."
+            },
+            {
+              "path": "convex/aiTown/agent.ts",
+              "type": "diff",
+              "title": "Unified Diff Preview",
+              "content": "--- a/convex/aiTown/agent.ts\n+++ b/convex/aiTown/agent.ts\n@@ -286,6 +286,32 @@\n \n type AgentOperations = typeof internal.aiTown.agentOperations;\n \n+// Candidate implementation for issue #297: Researcher agent writing papers\n+// Add this inside `Agent`, near `runAgentOperation`.\n+private shouldWritePaper() {\n+  const role = this.description?.toLowerCase() || '';\n+  const alreadyWriting = this.activity?.type === 'writePaper';\n+  return role.includes('researcher') && !alreadyWriting;\n+}\n+\n+private nextResearcherAction() {\n+  if (!this.shouldWritePaper()) {\n+    return null;\n+  }\n+\n+  return {\n+    type: 'writePaper',\n+    payload: {\n+      topic: this.toRemember,\n+    },\n+    reason: 'researcher agent should prioritize paper-writing behavior when idle',\n+  };\n+}\n+\n+// In runAgentOperation, prefer:\n+// const researcherAction = this.nextResearcherAction();\n+// if (researcherAction) return researcherAction;\n+\n export async function runAgentOperation(ctx: MutationCtx, operation: string, args: any) {\n   let reference;\n   switch (operation) {",
+              "language": "diff",
+              "description": "Git-apply compatible insertion diff with nearby context."
+            },
+            {
+              "path": "convex/aiTown/agent.ts",
+              "type": "warning",
+              "title": "Code Path Hints",
+              "content": "Target symbol: runAgentOperation\nExports in this file: agent",
+              "description": "Likely target symbol, callers, and nearby dependencies worth tracing before editing."
+            }
+          ],
+          "description": "Implement new feature in agent.ts",
+          "dependencies": [
+            1
+          ],
+          "estimatedMinutes": 45,
+          "validationCriteria": [
+            "The change in `convex/aiTown/agent.ts` directly satisfies the issue objective: Researcher agent writing papers.",
+            "The code path in `convex/aiTown/agent.ts` still follows the surrounding repository patterns and type conventions.",
+            "No new lint, type, or obvious runtime issues were introduced.",
+            "The updated behavior is covered by a focused test or existing test extension."
+          ]
+        },
+        {
+          "files": [
+            "convex/aiTown/agent.test.ts"
+          ],
+          "title": "Add New Tests",
+          "number": 3,
+          "actions": [
+            "Create or update focused tests near the implementation area: convex/aiTown/agent.test.ts.",
+            "Write one happy-path test that proves the issue objective now works: Researcher agent writing papers.",
+            "Add at least one edge-case or failure-path test that would have caught the regression or missing behavior earlier.",
+            "If the issue changes interactions between modules, add one integration-style assertion that proves the wiring still works end-to-end."
+          ],
+          "pitfalls": [
+            "Do not create tests that mirror the implementation too closely; assert observable behavior instead."
+          ],
+          "resources": [
+            {
+              "path": "convex/aiTown/agent.test.ts",
+              "type": "code",
+              "title": "Suggested Test Scaffold",
+              "content": "it('issue #297: Researcher agent writing papers', async () => {\n  // arrange: create the smallest input that exercises convex/aiTown/agent.ts\n  // act: call the target function or workflow\n  // assert: verify the new behavior explicitly\n});\n",
+              "language": "typescript",
+              "description": "Generated from acceptance criteria and adapted to the detected local test style when possible."
+            }
+          ],
+          "description": "Create comprehensive tests for new functionality",
+          "dependencies": [
+            2
+          ],
+          "estimatedMinutes": 60,
+          "validationCriteria": [
+            "The tests prove the main expected outcome for: Researcher agent writing papers.",
+            "At least one edge case or failure path is covered.",
+            "The new tests fail without the implementation change and pass with it."
+          ]
+        },
+        {
+          "files": [
+            "README.md",
+            "docs/**"
+          ],
+          "title": "Update Documentation",
+          "number": 4,
+          "actions": [
+            "Update inline comments only where the changed behavior in convex/aiTown/agent.ts would otherwise be hard to understand.",
+            "If \"Researcher agent writing papers\" changes developer-facing or user-facing behavior, document that change in README or nearby docs.",
+            "If the change is internal-only, say so explicitly and keep the documentation local to the code instead of editing the README.",
+            "Do not add broad documentation churn; document only the new contract, caveat, or usage pattern introduced by this issue."
+          ],
+          "pitfalls": [
+            "Do not add broad README churn if the issue only changes an internal behavior contract."
+          ],
+          "resources": [
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "Current Code: README.md",
+              "content": "# AI Town 🏠💻💌\n\n[Live Demo](https://www.convex.dev/ai-town)\n\n[Join our community Discord: AI Stack Devs](https://discord.gg/PQUmTBTGmT)\n\n<img width=\"1454\" alt=\"Screen Shot 2023-08-14 at 10 01 00 AM\" src=\"https://github.com/a16z-infra/ai-town/assets/3489963/a4c91f17-23ed-47ec-8c4e-9f9a8505057d\">\n\nAI Town is a virtual town where AI characters live, chat and socialize.\n\nThis project is a deployable starter kit for easily building and customizing your own version of AI\ntown. Inspired by the research paper\n[_Generative Agents: Interactive Simulacra of Human Behavior_](https://arxiv.org/pdf/2304.03442.pdf).\n\nThe primary goal of this project, beyond just being a lot of fun to work on, is to provide a\nplatform with a strong foundation that is meant to be extended. The back-end natively supports\nshared global state, transactions, and a simulation engine and should be suitable from everything\nfrom a simple project to play around with to a scalable, multi-player game. A secondary goal is to\nmake a JS/TS framework available as most simulators in this space (including the original paper\nabove) are written in Python.\n\n## Overview\n\n- 💻 [Stack](#stack)\n- 🧠 [Installation](#installation) (cloud, local, Docker, self-host, Fly.io, ...)\n- 💻️ [Windows Pre-requisites](#windows-installation)\n- 🤖 [Configure your LLM of choice](#connect-an-llm) (Ollama, OpenAI, Together.ai, ...)\n- 👤 [Customize - YOUR OWN simulated world](#customize-your-own-simulation)\n- 👩‍💻 [Deploying to production](#deploy-the-app-to-production)\n- 🐛 [Troubleshooting](#troubleshooting)",
+              "language": "markdown",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "type": "command",
+              "title": "Documentation Command",
+              "content": "rg -n \"Researcher agent writing papers\" README.md docs || true",
+              "language": "bash",
+              "description": "Search docs for the old behavior before updating them."
+            }
+          ],
+          "description": "Update relevant documentation and comments",
+          "dependencies": [
+            3
+          ],
+          "estimatedMinutes": 20,
+          "validationCriteria": [
+            "Any non-obvious behavior change is documented close to the code or in the relevant project docs.",
+            "The documentation reflects the new expected behavior for: Researcher agent writing papers."
+          ]
+        },
+        {
+          "files": [],
+          "title": "Prepare for Code Review",
+          "number": 5,
+          "actions": [
+            "Re-read the final diff starting with: convex/aiTown/agent.ts.",
+            "Write a PR summary that explains the problem, the chosen code path, and how the implementation now achieves: Researcher agent writing papers.",
+            "Include the exact tests or manual verification steps you used so another contributor can validate the change quickly."
+          ],
+          "pitfalls": [
+            "Do not open a PR without listing the exact files touched and how they relate to the issue objective."
+          ],
+          "resources": [],
+          "description": "Final checks and PR preparation",
+          "dependencies": [
+            4
+          ],
+          "estimatedMinutes": 15,
+          "validationCriteria": [
+            "The final diff is small enough to review confidently.",
+            "The PR description explains how the code changes achieve: Researcher agent writing papers.",
+            "Validation steps are explicit and reproducible by another developer."
+          ]
+        }
+      ],
+      "prDraft": {
+        "tests": [
+          "agent.test.ts or nearest existing behavior test",
+          "manual simulation or runtime verification of the changed flow"
+        ],
+        "title": "Add researcher agent writing papers",
+        "summary": [
+          "updates convex/aiTown/agent.ts to address Researcher agent writing papers",
+          "adds regression coverage for the changed behavior",
+          "documents the expected behavior where needed"
+        ]
+      },
+      "evidence": [
+        {
+          "label": "inspect repository structure",
+          "detail": "27 directories analyzed"
+        },
+        {
+          "label": "read README context",
+          "detail": "A MIT-licensed, deployable starter kit for building and customizing your own version of AI town - a virtual town where AI characters live, chat and socialize."
+        },
+        {
+          "label": "identify likely affected files",
+          "detail": "1 candidate files ranked"
+        },
+        {
+          "label": "generate implementation roadmap",
+          "detail": "remote repository guidance with step validation"
+        },
+        {
+          "label": "detect insertion point",
+          "detail": "best-effort semantic and structural insertion analysis"
+        },
+        {
+          "label": "produce diff preview",
+          "detail": "git-apply compatible preview when file content is available"
+        }
+      ],
+      "warnings": [],
+      "riskSummary": {
+        "level": "medium",
+        "reason": "No existing test coverage"
+      },
+      "reviewPoints": [
+        "After step 2: Review core implementation",
+        "After step 3: Review test coverage",
+        "After step 5: Final code review before PR"
+      ],
+      "testStrategy": {
+        "e2eTests": [
+          "Test complete user workflow",
+          "Verify all acceptance criteria"
+        ],
+        "unitTests": [
+          "Test all functions in agent.ts",
+          "Test error handling in agent.ts"
+        ],
+        "criticalPaths": [
+          "Main functionality in affected components"
+        ],
+        "coverageTarget": 80,
+        "integrationTests": []
+      },
+      "openQuestions": [
+        "What concrete success conditions would let a maintainer accept the first implementation?",
+        "Are there linked issues, prior attempts, or existing tools that already cover part of this work?",
+        "What work should be explicitly deferred from v1 so the first contribution stays narrowly reviewable?"
+      ],
+      "prerequisites": [
+        "Ensure development environment is set up",
+        "Have necessary access permissions",
+        "Understand the existing codebase architecture"
+      ],
+      "estimatedHours": 3,
+      "projectOverview": [
+        "A MIT-licensed, deployable starter kit for building and customizing your own version of AI town - a virtual town where AI characters live, chat and socialize.",
+        "Project type: Frontend Application",
+        "Tech stack: TypeScript | React",
+        "[Live Demo](https://www.convex.dev/ai-town)",
+        "[Join our community Discord: AI Stack Devs](https://discord.gg/PQUmTBTGmT)",
+        "Likely entry points: convex/_generated/server.js, convex/aiTown/main.ts, src/main.tsx"
+      ],
+      "rollbackStrategy": [
+        "Keep the feature branch until changes are verified in production",
+        "Tag the commit before merging for easy revert",
+        "Document rollback procedure in PR description"
+      ],
+      "projectActionGuide": [
+        {
+          "title": "Orient Yourself",
+          "actions": [
+            "Start with the GitHub README, repo description, and issue discussion to confirm the project’s purpose and contributor expectations.",
+            "Open the likely entry points first: convex/_generated/server.js, convex/aiTown/main.ts, src/main.tsx.",
+            "Map the top-level working areas before coding: src, convex, src/editor."
+          ]
+        },
+        {
+          "title": "Run the Project Correctly",
+          "actions": [
+            "Install and validate the baseline with `npm install` and the project’s test script if available."
+          ]
+        },
+        {
+          "title": "Trace the Code Path",
+          "actions": [
+            "Trace the user-facing flow from route/page entrypoints into components, hooks, and shared utilities before editing behavior.",
+            "Follow existing naming, directory, and test placement conventions instead of introducing a new layout for this issue."
+          ]
+        },
+        {
+          "title": "Scope the Issue Change",
+          "actions": [
+            "Translate \"📝 Integration Proposal: CAJAL — Scientific Paper Agent for AI Town\" into one small code path to change first, then expand only if the tests and issue discussion require it.",
+            "Update the nearest existing tests or create a focused regression test next to the implementation area rather than adding broad new coverage first.",
+            "Keep a short notes file or PR draft listing assumptions, repo-specific constraints, and any follow-up tasks that should not be bundled into v1."
+          ]
+        }
+      ],
+      "suggestedCodeChanges": [
+        "Inspect `convex/aiTown/agent.ts` first as a likely implementation target for the behavior implied by: Researcher agent writing papers",
+        "Add or update regression coverage around `convex/aiTown/agent.test.ts` to lock in the expected behavior for this issue."
+      ],
+      "recommendedStartingPoints": [
+        {
+          "path": "convex/aiTown/agent.ts",
+          "reason": "Mentioned directly in the issue text or matched strongly against issue keywords.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "repoInfo": {
+      "name": "ai-town",
+      "path": "a16z-infra/ai-town",
+      "slug": "a16z-infra/ai-town",
+      "type": "Frontend Application",
+      "source": "remote",
+      "overview": "A MIT-licensed, deployable starter kit for building and customizing your own version of AI town - a virtual town where AI characters live, chat and socialize.",
+      "patterns": [],
+      "structure": {
+        "rootFiles": [
+          ".dockerignore",
+          ".eslintignore",
+          ".eslintrc.js",
+          ".gitignore",
+          ".prettierrc",
+          ".vercelignore",
+          "ARCHITECTURE.md",
+          "Dockerfile",
+          "LICENSE",
+          "README.md",
+          "docker-compose.yml",
+          "index.html",
+          "jest.config.ts",
+          "package-lock.json",
+          "package.json",
+          "postcss.config.js",
+          "tailwind.config.js",
+          "tsconfig.json",
+          "vercel.json",
+          "vite.config.ts"
+        ],
+        "directories": [
+          {
+            "path": "src",
+            "purpose": "Source code",
+            "fileCount": 70,
+            "importance": "high"
+          },
+          {
+            "path": "convex",
+            "purpose": "General purpose",
+            "fileCount": 58,
+            "importance": "high"
+          },
+          {
+            "path": "src/editor",
+            "purpose": "General purpose",
+            "fileCount": 41,
+            "importance": "high"
+          },
+          {
+            "path": "data",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "convex/aiTown",
+            "purpose": "General purpose",
+            "fileCount": 19,
+            "importance": "medium"
+          },
+          {
+            "path": "src/components",
+            "purpose": "UI components",
+            "fileCount": 19,
+            "importance": "medium"
+          },
+          {
+            "path": "assets",
+            "purpose": "General purpose",
+            "fileCount": 18,
+            "importance": "medium"
+          },
+          {
+            "path": "convex/util",
+            "purpose": "General purpose",
+            "fileCount": 17,
+            "importance": "medium"
+          },
+          {
+            "path": "public",
+            "purpose": "General purpose",
+            "fileCount": 15,
+            "importance": "medium"
+          },
+          {
+            "path": "public/assets",
+            "purpose": "General purpose",
+            "fileCount": 14,
+            "importance": "medium"
+          },
+          {
+            "path": "data/spritesheets",
+            "purpose": "General purpose",
+            "fileCount": 13,
+            "importance": "medium"
+          },
+          {
+            "path": "assets/ui",
+            "purpose": "General purpose",
+            "fileCount": 9,
+            "importance": "medium"
+          },
+          {
+            "path": "src/editor/spritesheets",
+            "purpose": "General purpose",
+            "fileCount": 8,
+            "importance": "medium"
+          },
+          {
+            "path": "src/editor/tilesets",
+            "purpose": "General purpose",
+            "fileCount": 7,
+            "importance": "medium"
+          },
+          {
+            "path": "convex/_generated",
+            "purpose": "General purpose",
+            "fileCount": 5,
+            "importance": "low"
+          },
+          {
+            "path": "data/animations",
+            "purpose": "General purpose",
+            "fileCount": 5,
+            "importance": "low"
+          },
+          {
+            "path": "src/editor/maps",
+            "purpose": "General purpose",
+            "fileCount": 5,
+            "importance": "low"
+          },
+          {
+            "path": "src/hooks",
+            "purpose": "General purpose",
+            "fileCount": 5,
+            "importance": "low"
+          },
+          {
+            "path": "convex/agent",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "convex/engine",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "public/assets/spritesheets",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "src/components/buttons",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "fly",
+            "purpose": "General purpose",
+            "fileCount": 3,
+            "importance": "low"
+          },
+          {
+            "path": ".vscode",
+            "purpose": "General purpose",
+            "fileCount": 2,
+            "importance": "low"
+          },
+          {
+            "path": "public/assets/fonts",
+            "purpose": "General purpose",
+            "fileCount": 2,
+            "importance": "low"
+          },
+          {
+            "path": "fly/backend",
+            "purpose": "General purpose",
+            "fileCount": 1,
+            "importance": "low"
+          },
+          {
+            "path": "fly/dashboard",
+            "purpose": "General purpose",
+            "fileCount": 1,
+            "importance": "low"
+          }
+        ],
+        "entryPoints": [
+          "convex/_generated/server.js",
+          "convex/aiTown/main.ts",
+          "src/main.tsx"
+        ],
+        "keyComponents": [
+          {
+            "path": "src/App.tsx",
+            "type": "source",
+            "exports": [
+              "App"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/ConvexClientProvider.tsx",
+            "type": "source",
+            "exports": [
+              "ConvexClientProvider"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/MessageInput.tsx",
+            "type": "source",
+            "exports": [
+              "MessageInput"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/Messages.tsx",
+            "type": "source",
+            "exports": [
+              "Messages"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/hooks/serverGame.ts",
+            "type": "source",
+            "exports": [
+              "serverGame"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/main.tsx",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/Character.tsx",
+            "type": "source",
+            "exports": [
+              "Character"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/DebugPath.tsx",
+            "type": "source",
+            "exports": [
+              "DebugPath"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/DebugTimeManager.tsx",
+            "type": "source",
+            "exports": [
+              "DebugTimeManager"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/FreezeButton.tsx",
+            "type": "source",
+            "exports": [
+              "FreezeButton"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/Game.tsx",
+            "type": "source",
+            "exports": [
+              "Game"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/PixiGame.tsx",
+            "type": "source",
+            "exports": [
+              "PixiGame"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/PixiStaticMap.tsx",
+            "type": "source",
+            "exports": [
+              "PixiStaticMap"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/PixiViewport.tsx",
+            "type": "source",
+            "exports": [
+              "PixiViewport"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/Player.tsx",
+            "type": "source",
+            "exports": [
+              "Player"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/PlayerDetails.tsx",
+            "type": "source",
+            "exports": [
+              "PlayerDetails"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/PositionIndicator.tsx",
+            "type": "source",
+            "exports": [
+              "PositionIndicator"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/PoweredByConvex.tsx",
+            "type": "source",
+            "exports": [
+              "PoweredByConvex"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/buttons/Button.tsx",
+            "type": "source",
+            "exports": [
+              "Button"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/buttons/InteractButton.tsx",
+            "type": "source",
+            "exports": [
+              "InteractButton"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/buttons/LoginButton.tsx",
+            "type": "source",
+            "exports": [
+              "LoginButton"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/components/buttons/MusicButton.tsx",
+            "type": "source",
+            "exports": [
+              "MusicButton"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/eutils.js",
+            "type": "utility",
+            "exports": [
+              "eutils"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/le.js",
+            "type": "source",
+            "exports": [
+              "le"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/leconfig.js",
+            "type": "configuration",
+            "exports": [
+              "leconfig"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/lecontext.js",
+            "type": "source",
+            "exports": [
+              "lecontext"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/lehtmlui.js",
+            "type": "source",
+            "exports": [
+              "lehtmlui"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/mapfile.js",
+            "type": "source",
+            "exports": [
+              "mapfile"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/maps/gentle-full.js",
+            "type": "source",
+            "exports": [
+              "gentle-full"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/maps/gentle.js",
+            "type": "source",
+            "exports": [
+              "gentle"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/maps/gentleanim.js",
+            "type": "source",
+            "exports": [
+              "gentleanim"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/maps/mage3.js",
+            "type": "source",
+            "exports": [
+              "mage3"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/maps/serene.js",
+            "type": "source",
+            "exports": [
+              "serene"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/se.js",
+            "type": "source",
+            "exports": [
+              "se"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/seconfig.js",
+            "type": "configuration",
+            "exports": [
+              "seconfig"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/secontext.js",
+            "type": "source",
+            "exports": [
+              "secontext"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/sehtmlui.js",
+            "type": "source",
+            "exports": [
+              "sehtmlui"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/spritefile.js",
+            "type": "source",
+            "exports": [
+              "spritefile"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/editor/undo.js",
+            "type": "source",
+            "exports": [
+              "undo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/hooks/sendInput.ts",
+            "type": "source",
+            "exports": [
+              "sendInput"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/hooks/useHistoricalTime.ts",
+            "type": "source",
+            "exports": [
+              "useHistoricalTime"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/hooks/useHistoricalValue.ts",
+            "type": "source",
+            "exports": [
+              "useHistoricalValue"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/hooks/useWorldHeartbeat.ts",
+            "type": "source",
+            "exports": [
+              "useWorldHeartbeat"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/toasts.ts",
+            "type": "source",
+            "exports": [
+              "toasts"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/vite-env.d.ts",
+            "type": "source",
+            "exports": [
+              "vite-env.d"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/_generated/dataModel.d.ts",
+            "type": "source",
+            "exports": [
+              "dataModel.d"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/_generated/server.d.ts",
+            "type": "source",
+            "exports": [
+              "server.d"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/_generated/server.js",
+            "type": "source",
+            "exports": [
+              "server"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/agent/schema.ts",
+            "type": "source",
+            "exports": [
+              "schema"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/main.ts",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/schema.ts",
+            "type": "source",
+            "exports": [
+              "schema"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/engine/schema.ts",
+            "type": "source",
+            "exports": [
+              "schema"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/messages.ts",
+            "type": "source",
+            "exports": [
+              "messages"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/schema.ts",
+            "type": "source",
+            "exports": [
+              "schema"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "fly/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": ".eslintrc.js",
+            "type": "source",
+            "exports": [
+              ".eslintrc"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "ARCHITECTURE.md",
+            "type": "source",
+            "exports": [
+              "ARCHITECTURE"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/_generated/api.d.ts",
+            "type": "service",
+            "exports": [
+              "api.d"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/_generated/api.js",
+            "type": "service",
+            "exports": [
+              "api"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/agent/conversation.ts",
+            "type": "source",
+            "exports": [
+              "conversation"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/agent/embeddingsCache.ts",
+            "type": "source",
+            "exports": [
+              "embeddingsCache"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/agent/memory.ts",
+            "type": "source",
+            "exports": [
+              "memory"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/agent.ts",
+            "type": "source",
+            "exports": [
+              "agent"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/agentDescription.ts",
+            "type": "source",
+            "exports": [
+              "agentDescription"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/agentInputs.ts",
+            "type": "source",
+            "exports": [
+              "agentInputs"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/agentOperations.ts",
+            "type": "source",
+            "exports": [
+              "agentOperations"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/conversation.ts",
+            "type": "source",
+            "exports": [
+              "conversation"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/conversationMembership.ts",
+            "type": "source",
+            "exports": [
+              "conversationMembership"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/game.ts",
+            "type": "source",
+            "exports": [
+              "game"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/ids.ts",
+            "type": "source",
+            "exports": [
+              "ids"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/inputHandler.ts",
+            "type": "source",
+            "exports": [
+              "inputHandler"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/inputs.ts",
+            "type": "source",
+            "exports": [
+              "inputs"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/insertInput.ts",
+            "type": "source",
+            "exports": [
+              "insertInput"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/location.ts",
+            "type": "source",
+            "exports": [
+              "location"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/movement.ts",
+            "type": "source",
+            "exports": [
+              "movement"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/player.ts",
+            "type": "source",
+            "exports": [
+              "player"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/playerDescription.ts",
+            "type": "source",
+            "exports": [
+              "playerDescription"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "convex/aiTown/world.ts",
+            "type": "source",
+            "exports": [
+              "world"
+            ],
+            "dependencies": []
+          }
+        ]
+      },
+      "techStack": {
+        "language": "TypeScript",
+        "framework": "React",
+        "packageManager": "npm"
+      },
+      "highlights": [
+        "A MIT-licensed, deployable starter kit for building and customizing your own version of AI town - a virtual town where AI characters live, chat and socialize.",
+        "[Live Demo](https://www.convex.dev/ai-town)",
+        "[Join our community Discord: AI Stack Devs](https://discord.gg/PQUmTBTGmT)",
+        "<img width=\"1454\" alt=\"Screen Shot 2023-08-14 at 10 01 00 AM\" src=\"https://github.com/a16z-infra/ai-town/assets/3489963/a4c91f17-23ed-47ec-8c4e-9f9a8505057d\">"
+      ],
+      "conventions": [],
+      "dependencies": {
+        "production": {},
+        "development": {},
+        "peerDependencies": {}
+      },
+      "defaultBranch": "main"
+    },
+    "issueInfo": {
+      "url": "https://github.com/a16z-infra/ai-town/issues/297",
+      "repo": "ai-town",
+      "type": "feature",
+      "owner": "a16z-infra",
+      "state": "open",
+      "title": "📝 Integration Proposal: CAJAL — Scientific Paper Agent for AI Town",
+      "author": "Agnuxo1",
+      "labels": [],
+      "number": 297,
+      "source": "github-api",
+      "createdAt": "2026-05-04T16:40:13Z",
+      "updatedAt": "2026-05-04T16:40:13Z",
+      "complexity": "low",
+      "description": "## 📝 Integration Proposal: CAJAL — Scientific Paper Agent for AI Town\n\n### What is CAJAL?\n**CAJAL is not a general-purpose chat model.** It is a **specialized scientific paper generation tool** — local, 2GB, producing LaTeX-formatted academic output.\n\n### Part of P2PCLAW\nAgent in [P2PCLAW](https://p2pclaw.com) — 14-agent decentralized research network.\n\n### Why AI Town?\nAI Town simulates agent communities. CAJAL in AI Town:\n- Researcher agent writing papers\n- Peer review agents\n- Conference simulation\n\n### Proposed Integration\n```typescript\n// In AI Town\nconst researcher = new Agent({\n  name: \"CAJAL\",\n  role: \"Scientific Writer\",\n  model: \"cajal-4b\"\n});\n```\n\n### Links\n- 🤗 HF: https://huggingface.co/Agnuxo/CAJAL-4B-P2PCLAW\n- 📁 GH: https://github.com/Agnuxo1/CAJAL\n- 🌐 P2PCLAW: https://p2pclaw.com\n\n— Francisco (@Agnuxo1), P2PCLAW",
+      "requirements": [
+        "Researcher agent writing papers",
+        "Peer review agents",
+        "Conference simulation",
+        "🤗 HF: https://huggingface.co/Agnuxo/CAJAL-4B-P2PCLAW",
+        "📁 GH: https://github.com/Agnuxo1/CAJAL",
+        "🌐 P2PCLAW: https://p2pclaw.com"
+      ],
+      "relatedIssues": [],
+      "acceptanceCriteria": [],
+      "affectedComponents": [
+        "convex/aiTown/agent.ts"
+      ],
+      "discussionHighlights": []
+    },
+    "dependencyMap": {
+      "nodes": [
+        {
+          "id": "src/App.tsx",
+          "path": "src/App.tsx",
+          "type": "source",
+          "exports": [
+            "App"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/ConvexClientProvider.tsx",
+          "path": "src/components/ConvexClientProvider.tsx",
+          "type": "source",
+          "exports": [
+            "ConvexClientProvider"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/MessageInput.tsx",
+          "path": "src/components/MessageInput.tsx",
+          "type": "source",
+          "exports": [
+            "MessageInput"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/Messages.tsx",
+          "path": "src/components/Messages.tsx",
+          "type": "source",
+          "exports": [
+            "Messages"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/README.md",
+          "path": "src/editor/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/hooks/serverGame.ts",
+          "path": "src/hooks/serverGame.ts",
+          "type": "source",
+          "exports": [
+            "serverGame"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/main.tsx",
+          "path": "src/main.tsx",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/Character.tsx",
+          "path": "src/components/Character.tsx",
+          "type": "source",
+          "exports": [
+            "Character"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/DebugPath.tsx",
+          "path": "src/components/DebugPath.tsx",
+          "type": "source",
+          "exports": [
+            "DebugPath"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/DebugTimeManager.tsx",
+          "path": "src/components/DebugTimeManager.tsx",
+          "type": "source",
+          "exports": [
+            "DebugTimeManager"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/FreezeButton.tsx",
+          "path": "src/components/FreezeButton.tsx",
+          "type": "source",
+          "exports": [
+            "FreezeButton"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/Game.tsx",
+          "path": "src/components/Game.tsx",
+          "type": "source",
+          "exports": [
+            "Game"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/PixiGame.tsx",
+          "path": "src/components/PixiGame.tsx",
+          "type": "source",
+          "exports": [
+            "PixiGame"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/PixiStaticMap.tsx",
+          "path": "src/components/PixiStaticMap.tsx",
+          "type": "source",
+          "exports": [
+            "PixiStaticMap"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/PixiViewport.tsx",
+          "path": "src/components/PixiViewport.tsx",
+          "type": "source",
+          "exports": [
+            "PixiViewport"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/Player.tsx",
+          "path": "src/components/Player.tsx",
+          "type": "source",
+          "exports": [
+            "Player"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/PlayerDetails.tsx",
+          "path": "src/components/PlayerDetails.tsx",
+          "type": "source",
+          "exports": [
+            "PlayerDetails"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/PositionIndicator.tsx",
+          "path": "src/components/PositionIndicator.tsx",
+          "type": "source",
+          "exports": [
+            "PositionIndicator"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/PoweredByConvex.tsx",
+          "path": "src/components/PoweredByConvex.tsx",
+          "type": "source",
+          "exports": [
+            "PoweredByConvex"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/buttons/Button.tsx",
+          "path": "src/components/buttons/Button.tsx",
+          "type": "source",
+          "exports": [
+            "Button"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/buttons/InteractButton.tsx",
+          "path": "src/components/buttons/InteractButton.tsx",
+          "type": "source",
+          "exports": [
+            "InteractButton"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/buttons/LoginButton.tsx",
+          "path": "src/components/buttons/LoginButton.tsx",
+          "type": "source",
+          "exports": [
+            "LoginButton"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/components/buttons/MusicButton.tsx",
+          "path": "src/components/buttons/MusicButton.tsx",
+          "type": "source",
+          "exports": [
+            "MusicButton"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/eutils.js",
+          "path": "src/editor/eutils.js",
+          "type": "utility",
+          "exports": [
+            "eutils"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/le.js",
+          "path": "src/editor/le.js",
+          "type": "source",
+          "exports": [
+            "le"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/leconfig.js",
+          "path": "src/editor/leconfig.js",
+          "type": "configuration",
+          "exports": [
+            "leconfig"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/lecontext.js",
+          "path": "src/editor/lecontext.js",
+          "type": "source",
+          "exports": [
+            "lecontext"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/lehtmlui.js",
+          "path": "src/editor/lehtmlui.js",
+          "type": "source",
+          "exports": [
+            "lehtmlui"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/mapfile.js",
+          "path": "src/editor/mapfile.js",
+          "type": "source",
+          "exports": [
+            "mapfile"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/maps/gentle-full.js",
+          "path": "src/editor/maps/gentle-full.js",
+          "type": "source",
+          "exports": [
+            "gentle-full"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/maps/gentle.js",
+          "path": "src/editor/maps/gentle.js",
+          "type": "source",
+          "exports": [
+            "gentle"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/maps/gentleanim.js",
+          "path": "src/editor/maps/gentleanim.js",
+          "type": "source",
+          "exports": [
+            "gentleanim"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/maps/mage3.js",
+          "path": "src/editor/maps/mage3.js",
+          "type": "source",
+          "exports": [
+            "mage3"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/maps/serene.js",
+          "path": "src/editor/maps/serene.js",
+          "type": "source",
+          "exports": [
+            "serene"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/se.js",
+          "path": "src/editor/se.js",
+          "type": "source",
+          "exports": [
+            "se"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/seconfig.js",
+          "path": "src/editor/seconfig.js",
+          "type": "configuration",
+          "exports": [
+            "seconfig"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/secontext.js",
+          "path": "src/editor/secontext.js",
+          "type": "source",
+          "exports": [
+            "secontext"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/sehtmlui.js",
+          "path": "src/editor/sehtmlui.js",
+          "type": "source",
+          "exports": [
+            "sehtmlui"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/spritefile.js",
+          "path": "src/editor/spritefile.js",
+          "type": "source",
+          "exports": [
+            "spritefile"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/editor/undo.js",
+          "path": "src/editor/undo.js",
+          "type": "source",
+          "exports": [
+            "undo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/hooks/sendInput.ts",
+          "path": "src/hooks/sendInput.ts",
+          "type": "source",
+          "exports": [
+            "sendInput"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/hooks/useHistoricalTime.ts",
+          "path": "src/hooks/useHistoricalTime.ts",
+          "type": "source",
+          "exports": [
+            "useHistoricalTime"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/hooks/useHistoricalValue.ts",
+          "path": "src/hooks/useHistoricalValue.ts",
+          "type": "source",
+          "exports": [
+            "useHistoricalValue"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/hooks/useWorldHeartbeat.ts",
+          "path": "src/hooks/useWorldHeartbeat.ts",
+          "type": "source",
+          "exports": [
+            "useWorldHeartbeat"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/toasts.ts",
+          "path": "src/toasts.ts",
+          "type": "source",
+          "exports": [
+            "toasts"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/vite-env.d.ts",
+          "path": "src/vite-env.d.ts",
+          "type": "source",
+          "exports": [
+            "vite-env.d"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "README.md",
+          "path": "README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/_generated/dataModel.d.ts",
+          "path": "convex/_generated/dataModel.d.ts",
+          "type": "source",
+          "exports": [
+            "dataModel.d"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/_generated/server.d.ts",
+          "path": "convex/_generated/server.d.ts",
+          "type": "source",
+          "exports": [
+            "server.d"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/_generated/server.js",
+          "path": "convex/_generated/server.js",
+          "type": "source",
+          "exports": [
+            "server"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/agent/schema.ts",
+          "path": "convex/agent/schema.ts",
+          "type": "source",
+          "exports": [
+            "schema"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/main.ts",
+          "path": "convex/aiTown/main.ts",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/schema.ts",
+          "path": "convex/aiTown/schema.ts",
+          "type": "source",
+          "exports": [
+            "schema"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/engine/schema.ts",
+          "path": "convex/engine/schema.ts",
+          "type": "source",
+          "exports": [
+            "schema"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/messages.ts",
+          "path": "convex/messages.ts",
+          "type": "source",
+          "exports": [
+            "messages"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/schema.ts",
+          "path": "convex/schema.ts",
+          "type": "source",
+          "exports": [
+            "schema"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "fly/README.md",
+          "path": "fly/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": ".eslintrc.js",
+          "path": ".eslintrc.js",
+          "type": "source",
+          "exports": [
+            ".eslintrc"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "ARCHITECTURE.md",
+          "path": "ARCHITECTURE.md",
+          "type": "source",
+          "exports": [
+            "ARCHITECTURE"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/_generated/api.d.ts",
+          "path": "convex/_generated/api.d.ts",
+          "type": "service",
+          "exports": [
+            "api.d"
+          ],
+          "complexity": 3.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/_generated/api.js",
+          "path": "convex/_generated/api.js",
+          "type": "service",
+          "exports": [
+            "api"
+          ],
+          "complexity": 3.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/agent/conversation.ts",
+          "path": "convex/agent/conversation.ts",
+          "type": "source",
+          "exports": [
+            "conversation"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/agent/embeddingsCache.ts",
+          "path": "convex/agent/embeddingsCache.ts",
+          "type": "source",
+          "exports": [
+            "embeddingsCache"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/agent/memory.ts",
+          "path": "convex/agent/memory.ts",
+          "type": "source",
+          "exports": [
+            "memory"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/agent.ts",
+          "path": "convex/aiTown/agent.ts",
+          "type": "source",
+          "exports": [
+            "agent"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/agentDescription.ts",
+          "path": "convex/aiTown/agentDescription.ts",
+          "type": "source",
+          "exports": [
+            "agentDescription"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/agentInputs.ts",
+          "path": "convex/aiTown/agentInputs.ts",
+          "type": "source",
+          "exports": [
+            "agentInputs"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/agentOperations.ts",
+          "path": "convex/aiTown/agentOperations.ts",
+          "type": "source",
+          "exports": [
+            "agentOperations"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/conversation.ts",
+          "path": "convex/aiTown/conversation.ts",
+          "type": "source",
+          "exports": [
+            "conversation"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/conversationMembership.ts",
+          "path": "convex/aiTown/conversationMembership.ts",
+          "type": "source",
+          "exports": [
+            "conversationMembership"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/game.ts",
+          "path": "convex/aiTown/game.ts",
+          "type": "source",
+          "exports": [
+            "game"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/ids.ts",
+          "path": "convex/aiTown/ids.ts",
+          "type": "source",
+          "exports": [
+            "ids"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/inputHandler.ts",
+          "path": "convex/aiTown/inputHandler.ts",
+          "type": "source",
+          "exports": [
+            "inputHandler"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/inputs.ts",
+          "path": "convex/aiTown/inputs.ts",
+          "type": "source",
+          "exports": [
+            "inputs"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/insertInput.ts",
+          "path": "convex/aiTown/insertInput.ts",
+          "type": "source",
+          "exports": [
+            "insertInput"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/location.ts",
+          "path": "convex/aiTown/location.ts",
+          "type": "source",
+          "exports": [
+            "location"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/movement.ts",
+          "path": "convex/aiTown/movement.ts",
+          "type": "source",
+          "exports": [
+            "movement"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/player.ts",
+          "path": "convex/aiTown/player.ts",
+          "type": "source",
+          "exports": [
+            "player"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/playerDescription.ts",
+          "path": "convex/aiTown/playerDescription.ts",
+          "type": "source",
+          "exports": [
+            "playerDescription"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "convex/aiTown/world.ts",
+          "path": "convex/aiTown/world.ts",
+          "type": "source",
+          "exports": [
+            "world"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        }
+      ],
+      "metrics": {
+        "totalNodes": 80,
+        "totalRelations": 0,
+        "highImpactNodes": 0,
+        "averageComplexity": 1.3,
+        "circularDependencies": 0
+      },
+      "relations": []
+    }
+  },
+  "conversations": [],
+  "exportMetadata": {
+    "exportedAt": "2026-05-18T17:40:57.071Z",
+    "version": "1.0.0"
+  }
+}

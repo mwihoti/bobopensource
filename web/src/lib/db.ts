@@ -119,3 +119,40 @@ export async function saveBobConversation(input: {
 
   return Number((rows[0] as { id: number }).id);
 }
+
+export async function getUserAnalyses(userId: string) {
+  await ensureDatabaseSchema();
+  const sql = getSql();
+
+  const runs = await sql`
+    SELECT id, user_id, issue_url, repo_path, issue_title, issue_number, repository_slug, created_at 
+    FROM analysis_runs 
+    WHERE user_id = ${userId} 
+    ORDER BY created_at DESC
+  `;
+
+  return runs;
+}
+
+export async function getAnalysisWithConversations(analysisId: number, userId: string) {
+  await ensureDatabaseSchema();
+  const sql = getSql();
+
+  const runs = await sql`
+    SELECT * FROM analysis_runs 
+    WHERE id = ${analysisId} AND user_id = ${userId}
+  `;
+
+  if (runs.length === 0) return null;
+
+  const conversations = await sql`
+    SELECT * FROM bob_conversations 
+    WHERE analysis_run_id = ${analysisId} AND user_id = ${userId}
+    ORDER BY created_at ASC
+  `;
+
+  return {
+    ...runs[0],
+    conversations
+  };
+}

@@ -15,7 +15,8 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "prepare": "npm run build",
     "web": "npm run build && cd web && npm run dev",
-    "cli": "npm run build && node dist/cli.js"
+    "cli": "npm run build && node dist/cli.js",
+    "export-sessions": "cd web && node scripts/export-sessions.mjs"
   },
   "keywords": [
     "open-source",
