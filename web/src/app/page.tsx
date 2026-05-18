@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { SignInButton, UserButton, useUser } from '@clerk/nextjs';
+import { SignInButton, UserButton, useUser, useClerk } from '@clerk/nextjs';
 import { Terminal, Search, BookOpen, GitFork, ClipboardList, Loader2, CheckCircle2, AlertCircle, MessageSquare, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
   const { isLoaded, isSignedIn } = useUser();
+  const { redirectToSignIn } = useClerk();
   const [issueUrl, setIssueUrl] = useState('');
   const [repoPath, setRepoPath] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -26,7 +27,7 @@ export default function Home() {
     }
 
     if (!isSignedIn) {
-      setError('Please sign in with GitHub before starting an analysis.');
+      redirectToSignIn();
       return;
     }
 
@@ -73,13 +74,7 @@ export default function Home() {
     }
 
     if (!isSignedIn) {
-      setChatMessages((current) => [
-        ...current,
-        {
-          role: 'assistant',
-          content: 'Please sign in with GitHub before using Ask Bob.',
-        },
-      ]);
+      redirectToSignIn();
       return;
     }
 
