@@ -1,0 +1,737 @@
+{
+  "sessionId": "6",
+  "userId": "user_3DqwnJfrouBO8irQgfaAzk29RIG",
+  "issueUrl": "https://github.com/reworkd/perplexity-style-streaming/issues/4",
+  "issueTitle": "Demo is broken",
+  "repository": "reworkd/perplexity-style-streaming",
+  "createdAt": "2026-05-17T14:48:03.123Z",
+  "analysisResult": {
+    "logs": [],
+    "plan": {
+      "issue": {
+        "url": "https://github.com/reworkd/perplexity-style-streaming/issues/4",
+        "repo": "perplexity-style-streaming",
+        "type": "bug",
+        "owner": "reworkd",
+        "state": "open",
+        "title": "Demo is broken",
+        "author": "fohoizey2",
+        "labels": [],
+        "number": 4,
+        "source": "github-api",
+        "createdAt": "2023-12-17T20:57:30Z",
+        "updatedAt": "2024-04-18T17:05:30Z",
+        "complexity": "low",
+        "description": "Hi\r\n\r\nThe demo seems to be broken, nothing outputs.",
+        "requirements": [],
+        "relatedIssues": [],
+        "acceptanceCriteria": [],
+        "affectedComponents": [],
+        "discussionHighlights": [
+          "Hey yeah we had to close the demo due to costs. Unfortunately will probably remain broken (unless someone were to introduce a local LLM instead)"
+        ]
+      },
+      "risks": [
+        {
+          "level": "medium",
+          "impact": "Harder to verify correctness and prevent regressions",
+          "mitigation": [
+            "Create comprehensive test suite",
+            "Add tests before making changes",
+            "Consider adding integration tests"
+          ],
+          "description": "No existing test coverage"
+        }
+      ],
+      "steps": [
+        {
+          "files": [],
+          "title": "Setup and Preparation",
+          "number": 1,
+          "actions": [
+            "Create a new feature branch from main/master",
+            "Read the full issue body and any linked issues or design notes",
+            "Inspect the target repository structure and existing tooling",
+            "Confirm the local checkout matches the issue repository",
+            "Start your repo walkthrough with these likely issue-related files: src/pages/_app.tsx, src/pages/index.tsx."
+          ],
+          "pitfalls": [
+            "Do not assume the first candidate file is the correct edit target until you confirm the code path.",
+            "Do not start coding before checking linked issues or design discussion for hidden scope constraints."
+          ],
+          "resources": [
+            {
+              "type": "command",
+              "title": "Create Branch",
+              "content": "git checkout -b bob/issue-4-demo-is-broken",
+              "language": "bash",
+              "description": "Suggested branch name based on the issue title."
+            },
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "README Context",
+              "content": "## Introduction ⚡️\nA weekend project to mimmick the response streaming found in https://www.perplexity.ai/\n\n## Demo 🚀\nTry it yourself at https://perplexity-style-streaming.vercel.app/\n\n\nhttps://github.com/reworkd/perplexity-style-streaming/assets/50181239/341a267d-ccf3-48ec-b42c-89f2bb0a403f\n\n\n## Getting Started with development 💻\n\nFirst, run the development server:\n\n```bash\nnpm run dev\n# or\nyarn dev\n# or\npnpm dev\n```\n\nOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.",
+              "language": "markdown",
+              "description": "Read this first so you understand the project purpose and contributor workflow."
+            }
+          ],
+          "description": "Review the issue, repository conventions, and any linked design context before writing code.",
+          "dependencies": [],
+          "estimatedMinutes": 20,
+          "validationCriteria": [
+            "Target repository is confirmed",
+            "Linked context is reviewed",
+            "The local environment is ready"
+          ]
+        },
+        {
+          "files": [],
+          "title": "Define the First Narrow Milestone",
+          "number": 2,
+          "actions": [
+            "List candidate sub-problems or contract checks the issue suggests",
+            "Choose the smallest deterministic slice that can ship first",
+            "Mark later work such as profiling, offline analysis, or learned behavior as follow-up milestones",
+            "Write down the explicit scope and non-goals for v1",
+            "Use the candidate files to define scope boundaries, for example protocol definitions in src/pages/_app.tsx, src/pages/index.tsx and implementation modules in src/pages/_app.tsx, src/pages/index.tsx."
+          ],
+          "pitfalls": [
+            "Do not bundle archive, replay, profiling, and learned-pattern work into the first change unless the repo already supports it cleanly."
+          ],
+          "resources": [],
+          "description": "Reduce the issue to one reviewable milestone instead of attempting the full roadmap at once.",
+          "dependencies": [
+            1
+          ],
+          "estimatedMinutes": 30,
+          "validationCriteria": [
+            "A narrow v1 scope is documented",
+            "Follow-up milestones are separated from the MVP",
+            "The first milestone is reviewable on its own"
+          ]
+        },
+        {
+          "files": [],
+          "title": "Design the Core Engine Before Adapters",
+          "number": 3,
+          "actions": [
+            "Define a pure state machine or rule engine for the first milestone",
+            "Keep transport input, archive input, and output reporting in thin adapters",
+            "Decide what evidence each alert or finding must retain",
+            "Prefer deterministic rule-based checks for v1 over learned patterns",
+            "If the repo already has adjacent tools or schemas, inspect them first: src/pages/_app.tsx."
+          ],
+          "pitfalls": [
+            "Do not let transport code or persistence concerns leak into the rule engine."
+          ],
+          "resources": [],
+          "description": "Keep the reusable rule or state engine separate from transport, storage, and reporting.",
+          "dependencies": [
+            2
+          ],
+          "estimatedMinutes": 45,
+          "validationCriteria": [
+            "Core logic is isolated from IO concerns",
+            "Future live and offline modes can reuse the same engine",
+            "Evidence fields are explicit for every finding type"
+          ]
+        },
+        {
+          "files": [
+            "src/pages/_app.tsx",
+            "src/pages/index.tsx",
+            "src/pages/_document.tsx",
+            "src/pages/api/chat.ts"
+          ],
+          "title": "Implement the MVP Slice",
+          "number": 4,
+          "actions": [
+            "Implement only the chosen v1 contract or behavior set",
+            "Reuse the project’s existing output and alerting conventions",
+            "Record enough context to explain why a rule fired",
+            "Avoid bundling offline, replay, or profiling work into the first patch unless already trivial",
+            "Treat these as likely implementation targets rather than confirmed edit points: src/pages/_app.tsx, src/pages/index.tsx, src/pages/_document.tsx, src/pages/api/chat.ts."
+          ],
+          "pitfalls": [
+            "Treat the listed files as investigation targets in remote mode, not guaranteed final edit locations."
+          ],
+          "resources": [
+            {
+              "path": "src/pages/_app.tsx",
+              "type": "file_excerpt",
+              "title": "Current Code: src/pages/_app.tsx",
+              "content": "import '@/styles/globals.css'\nimport type { AppProps } from 'next/app'\n\nexport default function App({ Component, pageProps }: AppProps) {\n  return <Component {...pageProps} />\n}",
+              "language": "typescript",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "path": "src/pages/index.tsx",
+              "type": "file_excerpt",
+              "title": "Current Code: src/pages/index.tsx",
+              "content": "return (\n    <>\n      <Head>\n        <title>Reworkd - Animated streaming</title>\n        <meta name=\"description\" content=\"A demonstration of how to achieve Perplexity style text streaming\" />\n        <meta name=\"twitter:site\" content=\"@ReworkdAI\" />\n        <meta name=\"twitter:card\" content=\"summary_large_image\" />\n        <meta name=\"twitter:title\" content={\"Reworkd - Animated streaming\" ?? \"AgentGPT 🤖\"} />\n        <meta name=\"twitter:description\" content=\"A demonstration of how to achieve Perplexity style text streaming\" />\n        <meta name=\"twitter:image\" content=\"https://agentgpt.reworkd.ai/banner.png\" />\n        <meta name=\"twitter:image:width\" content=\"1280\" />\n        <meta name=\"twitter:image:height\" content=\"640\" />\n        <meta property=\"og:title\" content={\"Reworkd - Animated streaming\"} />\n        <meta property=\"og:description\" content=\"A demonstration of how to achieve Perplexity style text streaming\" />\n        <meta property=\"og:url\" content=\"https://agentgpt.reworkd.ai/\" />\n        <meta property=\"og:image\" content=\"https://agentgpt.reworkd.ai/banner.png\" />\n        <meta property=\"og:image:width\" content=\"1280\" />\n        <meta property=\"og:image:height\" content=\"640\" />\n        <meta property=\"og:type\" content=\"website\" />\n        <meta name=\"google-site-verification\" content=\"sG4QDkC8g2oxKSopgJdIe2hQ_SaJDaEaBjwCXZNkNWA\" />\n      </Head>\n      <Analytics />\n\n      <div className=\"bg-zinc-900 h-[100svh] w-screen flex items-center justify-center font-sans\">\n        <div\n          className=\"max-w-screen-md flex-1 flex flex-col h-[100svh] items-center p-5 sm:p-7 gap-5 sm:gap-7 overflow-hidden\">\n          <div className=\"flex-1 w-full overflow-auto\">\n            <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}\n                        transition={{ duration: 2, delay: 0.5 }}>",
+              "language": "typescript",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "path": "src/pages/_app.tsx",
+              "type": "warning",
+              "title": "Insertion Point Detection",
+              "reason": "Placing helper code before the first exported function keeps the public API block intact.",
+              "content": "Insert near line 4 (68% confidence)\nAnchor: before_first_export\nReason: Placing helper code before the first exported function keeps the public API block intact.",
+              "confidence": 0.68,
+              "description": "Best detected insertion point for the generated code."
+            },
+            {
+              "path": "src/pages/_app.tsx",
+              "type": "warning",
+              "title": "Conflict Detection",
+              "content": "No conflicting classes, functions, imports, or types detected in the current file excerpt.",
+              "description": "Potential naming or structural conflicts in the target file."
+            },
+            {
+              "path": "src/pages/_app.tsx",
+              "type": "warning",
+              "title": "Style Pattern Analysis",
+              "content": "Indentation: \"  \"\nQuote style: single\nSemicolons: disabled\nTrailing commas: disabled",
+              "description": "Detected local repository style signals used to adapt the snippet."
+            },
+            {
+              "path": "src/pages/_app.tsx",
+              "type": "code",
+              "title": "Suggested Code To Add",
+              "content": "// Candidate implementation for issue #4: Demo is broken\n// Extend `App` rather than creating a parallel execution path.\nconst nextIssueAction = {\n  type: 'demoIsBroken',\n  reason: 'Demo is broken',\n};\n\nif (shouldHandleDemoIsBroken(/* existing inputs */)) {\n  return nextIssueAction;\n}\n",
+              "language": "typescript",
+              "description": "Auto-adapted scaffold matched to the detected repo style."
+            },
+            {
+              "path": "src/pages/_app.tsx",
+              "type": "diff",
+              "title": "Unified Diff Preview",
+              "content": "--- a/src/pages/_app.tsx\n+++ b/src/pages/_app.tsx\n@@ -1,6 +1,17 @@\n import '@/styles/globals.css'\n import type { AppProps } from 'next/app'\n \n+// Candidate implementation for issue #4: Demo is broken\n+// Extend `App` rather than creating a parallel execution path.\n+const nextIssueAction = {\n+  type: 'demoIsBroken',\n+  reason: 'Demo is broken',\n+};\n+\n+if (shouldHandleDemoIsBroken(/* existing inputs */)) {\n+  return nextIssueAction;\n+}\n+\n export default function App({ Component, pageProps }: AppProps) {\n   return <Component {...pageProps} />\n }",
+              "language": "diff",
+              "description": "Git-apply compatible insertion diff with nearby context."
+            },
+            {
+              "path": "src/pages/_app.tsx",
+              "type": "warning",
+              "title": "Code Path Hints",
+              "content": "Target symbol: App\nExports in this file: _app",
+              "description": "Likely target symbol, callers, and nearby dependencies worth tracing before editing."
+            }
+          ],
+          "description": "Ship the first milestone using existing repository conventions for logs, alerts, or outputs.",
+          "dependencies": [
+            3
+          ],
+          "estimatedMinutes": 90,
+          "validationCriteria": [
+            "The first milestone is implemented end-to-end",
+            "Output matches project conventions",
+            "The patch remains narrowly scoped"
+          ]
+        },
+        {
+          "files": [
+            "src/pages/_app.test.tsx",
+            "src/pages/index.test.tsx",
+            "src/pages/_document.test.tsx"
+          ],
+          "title": "Add Deterministic Tests",
+          "number": 5,
+          "actions": [
+            "Add synthetic tests for valid flows",
+            "Add tests for missing responses, out-of-order inputs, and duplicate events",
+            "Add cleanup tests for disconnects or session termination",
+            "Use replayable or archived examples once the core path is working",
+            "Start by checking whether tests already live near: src/pages/_app.test.tsx, src/pages/index.test.tsx, src/pages/_document.test.tsx."
+          ],
+          "pitfalls": [
+            "Do not invent a new test style if the repo already has a pattern for integration or replay-driven testing."
+          ],
+          "resources": [
+            {
+              "path": "src/pages/_app.test.tsx",
+              "type": "code",
+              "title": "Suggested Test Scaffold",
+              "content": "it('issue #4: Demo is broken', async () => {\n  // arrange: create the smallest input that exercises src/pages/_app.tsx\n  // act: call the target function or workflow\n  // assert: verify the new behavior explicitly\n});\n",
+              "language": "typescript",
+              "description": "Generated from acceptance criteria and adapted to the detected local test style when possible."
+            }
+          ],
+          "description": "Test the happy path, invalid sequences, and cleanup behavior before broadening the rules.",
+          "dependencies": [
+            4
+          ],
+          "estimatedMinutes": 60,
+          "validationCriteria": [
+            "Happy-path and failure-path tests exist",
+            "Cleanup behavior is covered",
+            "The MVP can be validated without live traffic"
+          ]
+        },
+        {
+          "files": [
+            "README.md",
+            "docs/**"
+          ],
+          "title": "Document Scope and Follow-up Milestones",
+          "number": 6,
+          "actions": [
+            "Document the supported contracts or behaviors",
+            "Record false-positive caveats and observability limits",
+            "List next milestones such as offline analysis, replay support, or behavior profiling",
+            "Prepare the PR description with explicit scope boundaries"
+          ],
+          "pitfalls": [
+            "Do not over-document speculative future work as if it is already implemented."
+          ],
+          "resources": [
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "Current Code: README.md",
+              "content": "## Introduction ⚡️\nA weekend project to mimmick the response streaming found in https://www.perplexity.ai/\n\n## Demo 🚀\nTry it yourself at https://perplexity-style-streaming.vercel.app/\n\n\nhttps://github.com/reworkd/perplexity-style-streaming/assets/50181239/341a267d-ccf3-48ec-b42c-89f2bb0a403f\n\n\n## Getting Started with development 💻\n\nFirst, run the development server:\n\n```bash\nnpm run dev\n# or\nyarn dev\n# or\npnpm dev\n```\n\nOpen [http://localhost:3000](http://localhost:3000) with your browser to see the result.",
+              "language": "markdown",
+              "description": "Current code excerpt or candidate investigation context."
+            }
+          ],
+          "description": "Make it clear what shipped now and what remains for later milestones.",
+          "dependencies": [
+            5
+          ],
+          "estimatedMinutes": 25,
+          "validationCriteria": [
+            "Supported behavior is documented",
+            "Known limitations are explicit",
+            "Follow-up milestones are separated from the MVP"
+          ]
+        }
+      ],
+      "prDraft": {
+        "tests": [
+          "_app.test.tsx or nearest existing behavior test",
+          "manual simulation or runtime verification of the changed flow"
+        ],
+        "title": "Fix demo is broken",
+        "summary": [
+          "updates src/pages/_app.tsx to address Demo is broken",
+          "adds regression coverage for the changed behavior",
+          "documents the expected behavior where needed"
+        ]
+      },
+      "evidence": [
+        {
+          "label": "inspect repository structure",
+          "detail": "5 directories analyzed"
+        },
+        {
+          "label": "read README context",
+          "detail": "⚡️ Perplexity.ai style LLM response streaming"
+        },
+        {
+          "label": "identify likely affected files",
+          "detail": "5 candidate files ranked"
+        },
+        {
+          "label": "generate implementation roadmap",
+          "detail": "remote repository guidance with step validation"
+        },
+        {
+          "label": "detect insertion point",
+          "detail": "best-effort semantic and structural insertion analysis"
+        },
+        {
+          "label": "produce diff preview",
+          "detail": "git-apply compatible preview when file content is available"
+        }
+      ],
+      "warnings": [
+        "No concrete repository files were identified from the issue text. Treat this as a design-first contribution plan.",
+        "The issue does not define concrete requirements or acceptance criteria. Expect follow-up clarification before coding."
+      ],
+      "riskSummary": {
+        "level": "medium",
+        "reason": "No existing test coverage"
+      },
+      "reviewPoints": [
+        "After step 5: Review test coverage",
+        "After step 6: Final code review before PR"
+      ],
+      "testStrategy": {
+        "e2eTests": [],
+        "unitTests": [],
+        "criticalPaths": [],
+        "coverageTarget": 80,
+        "integrationTests": []
+      },
+      "openQuestions": [
+        "Which modules or directories are intended to own the first milestone of this issue?",
+        "What concrete success conditions would let a maintainer accept the first implementation?",
+        "Are there linked issues, prior attempts, or existing tools that already cover part of this work?"
+      ],
+      "prerequisites": [
+        "Ensure development environment is set up",
+        "Have necessary access permissions",
+        "Understand the existing codebase architecture"
+      ],
+      "estimatedHours": 5,
+      "projectOverview": [
+        "⚡️ Perplexity.ai style LLM response streaming",
+        "Project type: Backend API",
+        "Tech stack: TypeScript",
+        "A weekend project to mimmick the response streaming found in https://www.perplexity.ai/",
+        "Try it yourself at https://perplexity-style-streaming.vercel.app/",
+        "Likely entry points: src/pages/_app.tsx, src/pages/index.tsx"
+      ],
+      "rollbackStrategy": [
+        "Keep the feature branch until changes are verified in production",
+        "Tag the commit before merging for easy revert",
+        "Document rollback procedure in PR description"
+      ],
+      "projectActionGuide": [
+        {
+          "title": "Orient Yourself",
+          "actions": [
+            "Start with the GitHub README, repo description, and issue discussion to confirm the project’s purpose and contributor expectations.",
+            "Open the likely entry points first: src/pages/_app.tsx, src/pages/index.tsx.",
+            "Map the top-level working areas before coding: src, src/pages, public."
+          ]
+        },
+        {
+          "title": "Run the Project Correctly",
+          "actions": [
+            "Install and validate the baseline with `npm install` and the project’s test script if available."
+          ]
+        },
+        {
+          "title": "Trace the Code Path",
+          "actions": [
+            "Trace the request or event flow from handlers into service modules and shared utilities before patching logic.",
+            "Follow existing naming, directory, and test placement conventions instead of introducing a new layout for this issue."
+          ]
+        },
+        {
+          "title": "Scope the Issue Change",
+          "actions": [
+            "Translate \"Demo is broken\" into one small code path to change first, then expand only if the tests and issue discussion require it.",
+            "Update the nearest existing tests or create a focused regression test next to the implementation area rather than adding broad new coverage first.",
+            "Keep a short notes file or PR draft listing assumptions, repo-specific constraints, and any follow-up tasks that should not be bundled into v1."
+          ]
+        }
+      ],
+      "suggestedCodeChanges": [
+        "Inspect `src/pages/_app.tsx` first as a likely implementation target for the behavior implied by: Demo is broken",
+        "Check `src/pages/index.tsx` for wiring, exports, or shared helpers that must change alongside the main implementation.",
+        "Add or update regression coverage around `src/pages/_app.test.tsx` to lock in the expected behavior for this issue.",
+        "Cross-check your implementation against the issue discussion, especially this guidance: Hey yeah we had to close the demo due to costs. Unfortunately will probably remain broken (unless someone were to introduce a local LLM instead)"
+      ],
+      "recommendedStartingPoints": [
+        {
+          "path": "src/pages/_app.tsx",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a likely implementation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "src/pages/index.tsx",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a likely implementation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "src/pages/_document.tsx",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a likely implementation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "src/pages/api/chat.ts",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a likely implementation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "next.config.js",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a likely implementation target.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    "repoInfo": {
+      "name": "perplexity-style-streaming",
+      "path": "reworkd/perplexity-style-streaming",
+      "slug": "reworkd/perplexity-style-streaming",
+      "type": "Backend API",
+      "source": "remote",
+      "overview": "⚡️ Perplexity.ai style LLM response streaming",
+      "patterns": [],
+      "structure": {
+        "rootFiles": [
+          ".env.example",
+          ".eslintrc.json",
+          ".gitignore",
+          "LICENSE",
+          "README.md",
+          "next.config.js",
+          "package-lock.json",
+          "package.json",
+          "postcss.config.js",
+          "tailwind.config.js",
+          "tsconfig.json"
+        ],
+        "directories": [
+          {
+            "path": "src",
+            "purpose": "Source code",
+            "fileCount": 5,
+            "importance": "low"
+          },
+          {
+            "path": "src/pages",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "public",
+            "purpose": "General purpose",
+            "fileCount": 3,
+            "importance": "low"
+          },
+          {
+            "path": "src/pages/api",
+            "purpose": "API endpoints",
+            "fileCount": 1,
+            "importance": "low"
+          },
+          {
+            "path": "src/styles",
+            "purpose": "General purpose",
+            "fileCount": 1,
+            "importance": "low"
+          }
+        ],
+        "entryPoints": [
+          "src/pages/_app.tsx",
+          "src/pages/index.tsx"
+        ],
+        "keyComponents": [
+          {
+            "path": "src/pages/_app.tsx",
+            "type": "source",
+            "exports": [
+              "_app"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/pages/index.tsx",
+            "type": "source",
+            "exports": [
+              "index"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/pages/_document.tsx",
+            "type": "source",
+            "exports": [
+              "_document"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "src/pages/api/chat.ts",
+            "type": "source",
+            "exports": [
+              "chat"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "next.config.js",
+            "type": "configuration",
+            "exports": [
+              "next.config"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "postcss.config.js",
+            "type": "configuration",
+            "exports": [
+              "postcss.config"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tailwind.config.js",
+            "type": "configuration",
+            "exports": [
+              "tailwind.config"
+            ],
+            "dependencies": []
+          }
+        ]
+      },
+      "techStack": {
+        "language": "TypeScript",
+        "packageManager": "npm"
+      },
+      "highlights": [
+        "⚡️ Perplexity.ai style LLM response streaming",
+        "A weekend project to mimmick the response streaming found in https://www.perplexity.ai/",
+        "Try it yourself at https://perplexity-style-streaming.vercel.app/",
+        "https://github.com/reworkd/perplexity-style-streaming/assets/50181239/341a267d-ccf3-48ec-b42c-89f2bb0a403f"
+      ],
+      "conventions": [],
+      "dependencies": {
+        "production": {},
+        "development": {},
+        "peerDependencies": {}
+      },
+      "defaultBranch": "main"
+    },
+    "issueInfo": {
+      "url": "https://github.com/reworkd/perplexity-style-streaming/issues/4",
+      "repo": "perplexity-style-streaming",
+      "type": "bug",
+      "owner": "reworkd",
+      "state": "open",
+      "title": "Demo is broken",
+      "author": "fohoizey2",
+      "labels": [],
+      "number": 4,
+      "source": "github-api",
+      "createdAt": "2023-12-17T20:57:30Z",
+      "updatedAt": "2024-04-18T17:05:30Z",
+      "complexity": "low",
+      "description": "Hi\r\n\r\nThe demo seems to be broken, nothing outputs.",
+      "requirements": [],
+      "relatedIssues": [],
+      "acceptanceCriteria": [],
+      "affectedComponents": [],
+      "discussionHighlights": [
+        "Hey yeah we had to close the demo due to costs. Unfortunately will probably remain broken (unless someone were to introduce a local LLM instead)"
+      ]
+    },
+    "dependencyMap": {
+      "nodes": [
+        {
+          "id": "src/pages/_app.tsx",
+          "path": "src/pages/_app.tsx",
+          "type": "source",
+          "exports": [
+            "_app"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/pages/index.tsx",
+          "path": "src/pages/index.tsx",
+          "type": "source",
+          "exports": [
+            "index"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/pages/_document.tsx",
+          "path": "src/pages/_document.tsx",
+          "type": "source",
+          "exports": [
+            "_document"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "src/pages/api/chat.ts",
+          "path": "src/pages/api/chat.ts",
+          "type": "source",
+          "exports": [
+            "chat"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "README.md",
+          "path": "README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "next.config.js",
+          "path": "next.config.js",
+          "type": "configuration",
+          "exports": [
+            "next.config"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "postcss.config.js",
+          "path": "postcss.config.js",
+          "type": "configuration",
+          "exports": [
+            "postcss.config"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tailwind.config.js",
+          "path": "tailwind.config.js",
+          "type": "configuration",
+          "exports": [
+            "tailwind.config"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        }
+      ],
+      "metrics": {
+        "totalNodes": 8,
+        "totalRelations": 0,
+        "highImpactNodes": 0,
+        "averageComplexity": 1.3,
+        "circularDependencies": 0
+      },
+      "relations": []
+    }
+  },
+  "conversations": [],
+  "exportMetadata": {
+    "exportedAt": "2026-05-18T13:38:38.336Z",
+    "version": "1.0.0"
+  }
+}

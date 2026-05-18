@@ -1,0 +1,2433 @@
+{
+  "sessionId": "5",
+  "userId": "user_3DqwnJfrouBO8irQgfaAzk29RIG",
+  "issueUrl": "https://github.com/rust-bitcoin/rust-bitcoin/issues/6079",
+  "issueTitle": "Script code",
+  "repository": "rust-bitcoin/rust-bitcoin",
+  "createdAt": "2026-05-17T14:45:45.130Z",
+  "analysisResult": {
+    "logs": [],
+    "plan": {
+      "issue": {
+        "url": "https://github.com/rust-bitcoin/rust-bitcoin/issues/6079",
+        "repo": "rust-bitcoin",
+        "type": "feature",
+        "owner": "rust-bitcoin",
+        "state": "open",
+        "title": "Script code",
+        "author": "Kixunil",
+        "labels": [
+          "API break",
+          "1.0",
+          "API footgun"
+        ],
+        "number": 6079,
+        "source": "github-api",
+        "createdAt": "2026-04-24T13:48:18Z",
+        "updatedAt": "2026-04-27T15:24:13Z",
+        "complexity": "low",
+        "description": "Currently the script code is stored in `WitnessScriptBuf` which is misleading and inefficient. I propose to resolve it in one of the following ways:\n\n* Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n* Have `ScriptCodeEncoder` for pubkey and require that `script_code` impls `EncodeScriptCode` which is similar to `Encode` but only implemented for `WitnessScript` and `WScriptHash`, pros/cons are inverse of the above\n\nI was originally slightly preferring the latter but now that I wrote it out, I think I prefer the former. :D",
+        "requirements": [
+          "Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.",
+          "Have `ScriptCodeEncoder` for pubkey and require that `script_code` impls `EncodeScriptCode` which is similar to `Encode` but only implemented for `WitnessScript` and `WScriptHash`, pros/cons are inverse of the above"
+        ],
+        "relatedIssues": [],
+        "acceptanceCriteria": [],
+        "affectedComponents": [
+          "bitcoin/src/consensus/encode.rs",
+          "bitcoin/src/crypto/sighash.rs"
+        ],
+        "discussionHighlights": [
+          "For anyone reading this and thinking \"oh god this will delay`primitives`\", it will not -- the script code logic is all in extension traits in `bitcoin`, exactly because we haven't resolved how to handle scriptcodes. In some sense they are a type confusion in the bitcoin protocol itself, and we have to find the nicest way to mirror that type confusion in our own code.\n\nOf your two proposals @Kixunil I also prefer the former. In addition to being cleaner from a user point of view. I have two questions though:\n\n> Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n\n1. What do you mean by \"large item on the stack\"? A `ScriptCode` will be the same size as a `WitnessScript` or any other `Script<Tag>`.\n2. Can you briefly run through `AsRef`, `Borrow` and `Deref` and explain why we should have `AsRef` but not the other two? I think I agree with your choice but I then we should be explicit here so we have a record of what we were doing.",
+          "It's more like inheritance than type confusion, it seems but it's certainly confusing inheritance. :D\n \n1. `ScriptCodeBuf` contains the entire script pre-serialized, where encoder would only need to contain a hash and the state (1B); though after looking at it properly, it's 3B difference, which is too ridiculous\n2. I'm not saying we shouldn't have the other two, I was just trying to be brief. We at least probably should NOT have `Deref<Output=ScriptCode>` on `WitnessScript` but I think we should have the others. I'd also refrain from `Mut`, I guess.",
+          "> * `ScriptCodeBuf` contains the entire script pre-serialized, where encoder would only need to contain a hash and the state (1B); though after looking at it properly, it's 3B difference, which is too ridiculous\n\nAh, I see, you're contrasting solutions 1 and 2, rather than solution 1 vs the status quo. TBH I think the encoder solution would be a non-starter because we need some sort of concrete scriptcode type (currently `WitnessScriptBuf`, under solution 1 it'd be `ScriptCodeBuf`) because rust-miniscript needs a return type for its [`Descriptor::script_code`](https://docs.rs/miniscript/latest/miniscript/descriptor/enum.Descriptor.html#method.script_code) function.\n\nI suppose rust-miniscript could just define its own type and then implement `ScriptCodeEncoder` on that, but this would annoy me :).\n\n> * I'm not saying we shouldn't have the other two, I was just trying to be brief. We at least probably should NOT have `Deref<Output=ScriptCode>` on `WitnessScript` but I think we should have the others. I'd also refrain from `Mut`, I guess.\n\nYeah, agreed let's refrain from `Mut`.\n\nAlso agreed let's avoid `Deref` -- I think it's okay on \"would this be an abuse of `Deref`?\" grounds because we're pointer casting between two objects which have identical representations and which represent the same thing. But not every `WitnessScript` is a `ScriptCode`, so I don't think we want any implicit conversions.\n\nOn `Borrow` I could go either way. I don't think it's that useful. This trait is really for representing \"I can take an object or a reference to an object, and I know which one at compile time\" and I don't think I've ever actually implemented it on something."
+        ]
+      },
+      "risks": [
+        {
+          "level": "medium",
+          "impact": "Harder to verify correctness and prevent regressions",
+          "mitigation": [
+            "Create comprehensive test suite",
+            "Add tests before making changes",
+            "Consider adding integration tests"
+          ],
+          "description": "No existing test coverage"
+        }
+      ],
+      "steps": [
+        {
+          "files": [],
+          "title": "Setup and Preparation",
+          "number": 1,
+          "actions": [
+            "Create a new feature branch from main/master.",
+            "Read the issue title, requirements, and acceptance criteria until you can restate the objective as: \"Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\".",
+            "Open the first likely implementation files before coding: bitcoin/src/consensus/encode.rs, bitcoin/src/crypto/sighash.rs.",
+            "Trace where those files are imported or invoked so you understand the full code path that will change.",
+            "Run the project or test baseline once so you know the current behavior before introducing changes."
+          ],
+          "pitfalls": [
+            "Do not start patching the first file you see without tracing where the relevant behavior actually enters the system."
+          ],
+          "resources": [
+            {
+              "type": "command",
+              "title": "Create Branch",
+              "content": "git checkout -b bob/issue-6079-script-code",
+              "language": "bash",
+              "description": "Suggested branch name based on the issue title."
+            },
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "README Context",
+              "content": "<div align=\"center\">\n  <h1>Rust Bitcoin</h1>\n\n  <img alt=\"Rust Bitcoin logo by Hunter Trujillo, see license and source files under /logo\" src=\"./logo/rust-bitcoin.png\" width=\"300\" />\n\n  <p>Library with support for de/serialization, parsing and executing on data-structures\n    and network messages related to Bitcoin.\n  </p>\n\n  <p>\n    <a href=\"https://crates.io/crates/bitcoin\"><img alt=\"Crate Info\" src=\"https://img.shields.io/crates/v/bitcoin.svg\"/></a>\n    <a href=\"https://github.com/rust-bitcoin/rust-bitcoin/blob/master/LICENSE\"><img alt=\"CC0 1.0 Universal Licensed\" src=\"https://img.shields.io/badge/license-CC0--1.0-blue.svg\"/></a>\n    <a href=\"https://github.com/rust-bitcoin/rust-bitcoin/actions?query=workflow%3AContinuous%20integration\"><img alt=\"CI Status\" src=\"https://github.com/rust-bitcoin/rust-bitcoin/workflows/Continuous%20integration/badge.svg\"></a>\n    <a href=\"https://docs.rs/bitcoin\"><img alt=\"API Docs\" src=\"https://img.shields.io/badge/docs.rs-bitcoin-green\"/></a>\n    <a href=\"https://blog.rust-lang.org/2023/11/16/Rust-1.74.0/\"><img alt=\"Rustc Version 1.74.0+\" src=\"https://img.shields.io/badge/rustc-1.74.0%2B-lightgrey.svg\"/></a>\n    <a href=\"https://gnusha.org/bitcoin-rust/\"><img alt=\"Chat on IRC\" src=\"https://img.shields.io/badge/irc-%23bitcoin--rust%20on%20libera.chat-blue\"></a>\n    <a href=\"https://github.com/model-checking/kani\"><img alt=\"kani\" src=\"https://github.com/rust-bitcoin/rust-bitcoin/workflows/Kani%20CI/badge.svg\"></a>\n  </p>\n</div>\n\n[Documentation](https://docs.rs/bitcoin/)\n\nSupports (or should support)\n\n* De/serialization of Bitcoin protocol network messages\n* De/serialization of blocks and transactions\n* Script de/serialization\n* Private keys and address creation, de/serialization and validation (including full BIP-0032 support)\n* PSBT v0 de/serialization and all but the Input Finalizer role. Use [rust-miniscript](https://docs.rs/miniscript/latest/miniscript/psbt/index.html) to finalize.",
+              "language": "markdown",
+              "description": "Read this first so you understand the project purpose and contributor workflow."
+            }
+          ],
+          "description": "Create feature branch and review existing code",
+          "dependencies": [],
+          "estimatedMinutes": 15,
+          "validationCriteria": [
+            "Feature branch created",
+            "All affected files reviewed",
+            "Development environment ready"
+          ]
+        },
+        {
+          "files": [
+            "bitcoin/src/consensus/encode.rs"
+          ],
+          "title": "Implement Changes in encode.rs",
+          "number": 2,
+          "actions": [
+            "Open `bitcoin/src/consensus/encode.rs` and identify the exported function, class, or handler that currently owns the behavior closest to: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "Trace the inputs, outputs, and adjacent callers around `encode.rs` so you know exactly where the new behavior must be inserted.",
+            "Add the new behavior directly in `encode.rs` while preserving the surrounding public contract unless the issue says otherwise.",
+            "Add or update nearby type guards, return types, or schema handling in `encode.rs` if the new behavior changes data shape.",
+            "Keep the implementation aligned with existing patterns already used in neighboring files to avoid introducing a one-off design."
+          ],
+          "pitfalls": [
+            "Do not add parallel logic paths in `bitcoin/src/consensus/encode.rs` if the existing code already has a single place that owns this behavior."
+          ],
+          "resources": [
+            {
+              "path": "bitcoin/src/consensus/encode.rs",
+              "type": "file_excerpt",
+              "title": "Current Code: bitcoin/src/consensus/encode.rs",
+              "content": "// SPDX-License-Identifier: CC0-1.0\n\n//! Bitcoin consensus-encodable types.\n//!\n//! This is basically a replacement of the `Encodable` trait which does\n//! normalization of endianness etc., to ensure that the encoding matches\n//! the network consensus encoding.\n//!\n//! Essentially, anything that must go on the _disk_ or _network_ must be\n//! encoded using the `Encodable` trait, since this data must be the same for\n//! all systems. Any data going to the _user_ e.g., over JSONRPC, should use the\n//! ordinary `Encodable` trait. (This should also be the same across systems, of\n//! course, but has some critical differences from the network format e.g.,\n//! scripts come with an opcode decode, hashes are big-endian, numbers are\n//! typically big-endian decimals, etc.)\n\nuse core::any::TypeId;\nuse core::{cmp, mem, slice};\n\nuse encoding::{CompactSizeEncoder, Encoder};\nuse hashes::{sha256, sha256d, Hash};\nuse hex_unstable::DisplayHex as _;\nuse internals::ToU64;\nuse io::{BufRead, Cursor, Read, Write};\n\nuse super::IterReader;\nuse crate::prelude::{rc, sync, Box, Cow, String, Vec};\nuse crate::taproot::TapLeafHash;\n\n#[rustfmt::skip]                // Keep public re-exports separate.",
+              "language": "rust",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "path": "bitcoin/src/consensus/encode.rs",
+              "type": "warning",
+              "title": "Insertion Point Detection",
+              "reason": "No stronger structural anchor was detected, so append-at-end is the fallback.",
+              "content": "Insert near line 1215 (60% confidence)\nAnchor: end_of_file\nReason: No stronger structural anchor was detected, so append-at-end is the fallback.",
+              "confidence": 0.6,
+              "description": "Best detected insertion point for the generated code."
+            },
+            {
+              "path": "bitcoin/src/consensus/encode.rs",
+              "type": "warning",
+              "title": "Conflict Detection",
+              "content": "No conflicting classes, functions, imports, or types detected in the current file excerpt.",
+              "description": "Potential naming or structural conflicts in the target file."
+            },
+            {
+              "path": "bitcoin/src/consensus/encode.rs",
+              "type": "warning",
+              "title": "Style Pattern Analysis",
+              "content": "Indentation: \"    \"\nQuote style: double\nSemicolons: enabled\nTrailing commas: enabled",
+              "description": "Detected local repository style signals used to adapt the snippet."
+            },
+            {
+              "path": "bitcoin/src/consensus/encode.rs",
+              "type": "code",
+              "title": "Suggested Code To Add",
+              "content": "// Candidate implementation for issue #6079: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n// Add this near `deserialize_compact_size_too_large` or inline the logic into the existing rule path.\nif should_flag_have_scriptcodetag_type_scriptco(&state, &event) {\n    findings.push(Finding::new(\n        \"have-scriptcodetag-type-scriptco\",\n        \"Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\",\n    ));\n}\n",
+              "language": "rust",
+              "description": "Auto-adapted scaffold matched to the detected repo style."
+            },
+            {
+              "path": "bitcoin/src/consensus/encode.rs",
+              "type": "diff",
+              "title": "Unified Diff Preview",
+              "content": "--- a/bitcoin/src/consensus/encode.rs\n+++ b/bitcoin/src/consensus/encode.rs\n@@ -1212,3 +1212,12 @@\n     }\n }\n \n+// Candidate implementation for issue #6079: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n+// Add this near `deserialize_compact_size_too_large` or inline the logic into the existing rule path.\n+if should_flag_have_scriptcodetag_type_scriptco(&state, &event) {\n+    findings.push(Finding::new(\n+        \"have-scriptcodetag-type-scriptco\",\n+        \"Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\",\n+    ));\n+}\n+",
+              "language": "diff",
+              "description": "Git-apply compatible insertion diff with nearby context."
+            },
+            {
+              "path": "bitcoin/src/consensus/encode.rs",
+              "type": "warning",
+              "title": "Code Path Hints",
+              "content": "Target symbol: deserialize_compact_size_too_large\nExports in this file: encode",
+              "description": "Likely target symbol, callers, and nearby dependencies worth tracing before editing."
+            }
+          ],
+          "description": "Implement new feature in encode.rs",
+          "dependencies": [
+            1
+          ],
+          "estimatedMinutes": 45,
+          "validationCriteria": [
+            "The change in `bitcoin/src/consensus/encode.rs` directly satisfies the issue objective: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "The code path in `bitcoin/src/consensus/encode.rs` still follows the surrounding repository patterns and type conventions.",
+            "No new lint, type, or obvious runtime issues were introduced.",
+            "The updated behavior is covered by a focused test or existing test extension."
+          ]
+        },
+        {
+          "files": [
+            "bitcoin/src/crypto/sighash.rs"
+          ],
+          "title": "Implement Changes in sighash.rs",
+          "number": 3,
+          "actions": [
+            "Open `bitcoin/src/crypto/sighash.rs` and identify the exported function, class, or handler that currently owns the behavior closest to: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "Trace the inputs, outputs, and adjacent callers around `sighash.rs` so you know exactly where the new behavior must be inserted.",
+            "Add the new behavior directly in `sighash.rs` while preserving the surrounding public contract unless the issue says otherwise.",
+            "Add or update nearby type guards, return types, or schema handling in `sighash.rs` if the new behavior changes data shape.",
+            "Keep the implementation aligned with existing patterns already used in neighboring files to avoid introducing a one-off design."
+          ],
+          "pitfalls": [
+            "Do not add parallel logic paths in `bitcoin/src/crypto/sighash.rs` if the existing code already has a single place that owns this behavior."
+          ],
+          "resources": [
+            {
+              "path": "bitcoin/src/crypto/sighash.rs",
+              "type": "file_excerpt",
+              "title": "Current Code: bitcoin/src/crypto/sighash.rs",
+              "content": "// SPDX-License-Identifier: CC0-1.0\n\n//! Signature hash implementation (used in transaction signing).\n//!\n//! Efficient implementation of the algorithm to compute the message to be signed according to\n//! [BIP-0341], [BIP-0143] and legacy (before BIP-0143).\n//!\n//! Computing signature hashes is required to sign a transaction and this module is designed to\n//! handle its complexity efficiently. Computing these hashes is as simple as creating\n//! [`SighashCache`] and calling its methods.\n//!\n//! [BIP-0341]: <https://github.com/bitcoin/bips/blob/150ab6f5c3aca9da05fccc5b435e9667853407f4/bip-0341.mediawiki>\n//! [BIP-0143]: <https://github.com/bitcoin/bips/blob/99701f68a88ce33b2d0838eb84e115cef505b4c2/bip-0143.mediawiki>\n\nuse core::str;\n\n#[cfg(feature = \"arbitrary\")]\nuse arbitrary::{Arbitrary, Unstructured};\nuse hashes::{hash_newtype, sha256, sha256d, sha256t, sha256t_tag};\nuse io::Write;\n\nuse crate::consensus::{encode, Encodable};\nuse crate::prelude::{Borrow, BorrowMut};\nuse crate::script::{ScriptExt as _, ScriptHashableTag};\nuse crate::taproot::{LeafVersion, TapLeafHash, TapLeafTag, TAPROOT_ANNEX_PREFIX};\nuse crate::transaction::TransactionExt as _;\nuse crate::witness::Witness;\nuse crate::{\n    transaction, Amount, ScriptPubKey, Sequence, TapScript, Transaction, TxOut, WitnessScript,\n};",
+              "language": "rust",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "path": "bitcoin/src/crypto/sighash.rs",
+              "type": "warning",
+              "title": "Insertion Point Detection",
+              "reason": "No stronger structural anchor was detected, so append-at-end is the fallback.",
+              "content": "Insert near line 1983 (60% confidence)\nAnchor: end_of_file\nReason: No stronger structural anchor was detected, so append-at-end is the fallback.",
+              "confidence": 0.6,
+              "description": "Best detected insertion point for the generated code."
+            },
+            {
+              "path": "bitcoin/src/crypto/sighash.rs",
+              "type": "warning",
+              "title": "Conflict Detection",
+              "content": "No conflicting classes, functions, imports, or types detected in the current file excerpt.",
+              "description": "Potential naming or structural conflicts in the target file."
+            },
+            {
+              "path": "bitcoin/src/crypto/sighash.rs",
+              "type": "warning",
+              "title": "Style Pattern Analysis",
+              "content": "Indentation: \"    \"\nQuote style: double\nSemicolons: enabled\nTrailing commas: enabled",
+              "description": "Detected local repository style signals used to adapt the snippet."
+            },
+            {
+              "path": "bitcoin/src/crypto/sighash.rs",
+              "type": "code",
+              "title": "Suggested Code To Add",
+              "content": "// Candidate implementation for issue #6079: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n// Add this near `run_test_sighash` or inline the logic into the existing rule path.\nif should_flag_have_scriptcodetag_type_scriptco(&state, &event) {\n    findings.push(Finding::new(\n        \"have-scriptcodetag-type-scriptco\",\n        \"Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\",\n    ));\n}\n",
+              "language": "rust",
+              "description": "Auto-adapted scaffold matched to the detected repo style."
+            },
+            {
+              "path": "bitcoin/src/crypto/sighash.rs",
+              "type": "diff",
+              "title": "Unified Diff Preview",
+              "content": "--- a/bitcoin/src/crypto/sighash.rs\n+++ b/bitcoin/src/crypto/sighash.rs\n@@ -1980,3 +1980,12 @@\n     }\n }\n \n+// Candidate implementation for issue #6079: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n+// Add this near `run_test_sighash` or inline the logic into the existing rule path.\n+if should_flag_have_scriptcodetag_type_scriptco(&state, &event) {\n+    findings.push(Finding::new(\n+        \"have-scriptcodetag-type-scriptco\",\n+        \"Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\",\n+    ));\n+}\n+",
+              "language": "diff",
+              "description": "Git-apply compatible insertion diff with nearby context."
+            },
+            {
+              "path": "bitcoin/src/crypto/sighash.rs",
+              "type": "warning",
+              "title": "Code Path Hints",
+              "content": "Target symbol: run_test_sighash\nExports in this file: sighash",
+              "description": "Likely target symbol, callers, and nearby dependencies worth tracing before editing."
+            }
+          ],
+          "description": "Implement new feature in sighash.rs",
+          "dependencies": [
+            2
+          ],
+          "estimatedMinutes": 45,
+          "validationCriteria": [
+            "The change in `bitcoin/src/crypto/sighash.rs` directly satisfies the issue objective: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "The code path in `bitcoin/src/crypto/sighash.rs` still follows the surrounding repository patterns and type conventions.",
+            "No new lint, type, or obvious runtime issues were introduced.",
+            "The updated behavior is covered by a focused test or existing test extension."
+          ]
+        },
+        {
+          "files": [
+            "bitcoin/tests/consensus/encode.rs",
+            "bitcoin/tests/crypto/sighash.rs"
+          ],
+          "title": "Add New Tests",
+          "number": 4,
+          "actions": [
+            "Create or update focused tests near the implementation area: bitcoin/tests/consensus/encode.rs, bitcoin/tests/crypto/sighash.rs.",
+            "Write one happy-path test that proves the issue objective now works: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "Add at least one edge-case or failure-path test that would have caught the regression or missing behavior earlier.",
+            "If the issue changes interactions between modules, add one integration-style assertion that proves the wiring still works end-to-end."
+          ],
+          "pitfalls": [
+            "Do not create tests that mirror the implementation too closely; assert observable behavior instead."
+          ],
+          "resources": [
+            {
+              "path": "bitcoin/tests/consensus/encode.rs",
+              "type": "code",
+              "title": "Suggested Test Scaffold",
+              "content": "#[test]\nfn issue_6079_have_scriptcodetag_type_() {\n    // arrange: build the smallest input or event sequence from bitcoin/src/consensus/encode.rs\n    // act: execute the code path under test\n    // assert: prove Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n    assert!(true);\n}\n",
+              "language": "rust",
+              "description": "Generated from acceptance criteria and adapted to the detected local test style when possible."
+            }
+          ],
+          "description": "Create comprehensive tests for new functionality",
+          "dependencies": [
+            3
+          ],
+          "estimatedMinutes": 60,
+          "validationCriteria": [
+            "The tests prove the main expected outcome for: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "At least one edge case or failure path is covered.",
+            "The new tests fail without the implementation change and pass with it."
+          ]
+        },
+        {
+          "files": [
+            "README.md",
+            "docs/**"
+          ],
+          "title": "Update Documentation",
+          "number": 5,
+          "actions": [
+            "Update inline comments only where the changed behavior in bitcoin/src/consensus/encode.rs, bitcoin/src/crypto/sighash.rs would otherwise be hard to understand.",
+            "If \"Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\" changes developer-facing or user-facing behavior, document that change in README or nearby docs.",
+            "If the change is internal-only, say so explicitly and keep the documentation local to the code instead of editing the README.",
+            "Do not add broad documentation churn; document only the new contract, caveat, or usage pattern introduced by this issue."
+          ],
+          "pitfalls": [
+            "Do not add broad README churn if the issue only changes an internal behavior contract."
+          ],
+          "resources": [
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "Current Code: README.md",
+              "content": "Supports (or should support)\n\n* De/serialization of Bitcoin protocol network messages\n* De/serialization of blocks and transactions\n* Script de/serialization\n* Private keys and address creation, de/serialization and validation (including full BIP-0032 support)\n* PSBT v0 de/serialization and all but the Input Finalizer role. Use [rust-miniscript](https://docs.rs/miniscript/latest/miniscript/psbt/index.html) to finalize.\n\nFor JSONRPC interaction with Bitcoin Core, it is recommended to use\n[rust-bitcoincore-rpc](https://github.com/rust-bitcoin/rust-bitcoincore-rpc).\n\nIt is recommended to always use [cargo-crev](https://github.com/crev-dev/cargo-crev) to verify the\ntrustworthiness of each of your dependencies, including this one.\n\n## Known limitations\n\n### Consensus\n\nThis library **must not** be used for consensus code (i.e. fully validating blockchain data). It\ntechnically supports doing this, but doing so is very ill-advised because there are many deviations,\nknown and unknown, between this library and the Bitcoin Core reference implementation. In a\nconsensus based cryptocurrency, such as Bitcoin, it is critical that all parties are using the same\nrules to validate data, and this library is simply unable to implement the same rules as Core.\n\nGiven the complexity of both C++ and Rust, it is unlikely that this will ever be fixed, and there\nare no plans to do so. Of course, patches to fix specific consensus incompatibilities are welcome.\n\n### Support for 16-bit pointer sizes",
+              "language": "markdown",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "type": "command",
+              "title": "Documentation Command",
+              "content": "rg -n \"Have `ScriptCodeTag`, `type ScriptCode =\" README.md docs || true",
+              "language": "bash",
+              "description": "Search docs for the old behavior before updating them."
+            }
+          ],
+          "description": "Update relevant documentation and comments",
+          "dependencies": [
+            4
+          ],
+          "estimatedMinutes": 20,
+          "validationCriteria": [
+            "Any non-obvious behavior change is documented close to the code or in the relevant project docs.",
+            "The documentation reflects the new expected behavior for: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.."
+          ]
+        },
+        {
+          "files": [],
+          "title": "Prepare for Code Review",
+          "number": 6,
+          "actions": [
+            "Re-read the final diff starting with: bitcoin/src/consensus/encode.rs, bitcoin/src/crypto/sighash.rs.",
+            "Write a PR summary that explains the problem, the chosen code path, and how the implementation now achieves: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "Include the exact tests or manual verification steps you used so another contributor can validate the change quickly."
+          ],
+          "pitfalls": [
+            "Do not open a PR without listing the exact files touched and how they relate to the issue objective."
+          ],
+          "resources": [],
+          "description": "Final checks and PR preparation",
+          "dependencies": [
+            5
+          ],
+          "estimatedMinutes": 15,
+          "validationCriteria": [
+            "The final diff is small enough to review confidently.",
+            "The PR description explains how the code changes achieve: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack..",
+            "Validation steps are explicit and reproducible by another developer."
+          ]
+        }
+      ],
+      "prDraft": {
+        "tests": [
+          "encode.rs or nearest existing behavior test",
+          "manual simulation or runtime verification of the changed flow"
+        ],
+        "title": "Add have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack",
+        "summary": [
+          "updates bitcoin/src/consensus/encode.rs to address Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.",
+          "adds regression coverage for the changed behavior",
+          "documents the expected behavior where needed"
+        ]
+      },
+      "evidence": [
+        {
+          "label": "inspect repository structure",
+          "detail": "30 directories analyzed"
+        },
+        {
+          "label": "read README context",
+          "detail": "Rust Bitcoin library"
+        },
+        {
+          "label": "identify likely affected files",
+          "detail": "2 candidate files ranked"
+        },
+        {
+          "label": "generate implementation roadmap",
+          "detail": "remote repository guidance with step validation"
+        },
+        {
+          "label": "detect insertion point",
+          "detail": "best-effort semantic and structural insertion analysis"
+        },
+        {
+          "label": "produce diff preview",
+          "detail": "git-apply compatible preview when file content is available"
+        }
+      ],
+      "warnings": [],
+      "riskSummary": {
+        "level": "medium",
+        "reason": "No existing test coverage"
+      },
+      "reviewPoints": [
+        "After step 3: Review core implementation",
+        "After step 4: Review test coverage",
+        "After step 6: Final code review before PR"
+      ],
+      "testStrategy": {
+        "e2eTests": [
+          "Test complete user workflow",
+          "Verify all acceptance criteria"
+        ],
+        "unitTests": [
+          "Test all functions in encode.rs",
+          "Test error handling in encode.rs",
+          "Test all functions in sighash.rs",
+          "Test error handling in sighash.rs"
+        ],
+        "criticalPaths": [
+          "Main functionality in affected components"
+        ],
+        "coverageTarget": 80,
+        "integrationTests": [
+          "Test interaction between modified components",
+          "Verify data flow between components"
+        ]
+      },
+      "openQuestions": [
+        "What concrete success conditions would let a maintainer accept the first implementation?",
+        "Are there linked issues, prior attempts, or existing tools that already cover part of this work?",
+        "What work should be explicitly deferred from v1 so the first contribution stays narrowly reviewable?"
+      ],
+      "prerequisites": [
+        "Ensure development environment is set up",
+        "Have necessary access permissions",
+        "Understand the existing codebase architecture"
+      ],
+      "estimatedHours": 3.5,
+      "projectOverview": [
+        "Rust Bitcoin library",
+        "Project type: Backend API",
+        "Tech stack: Rust",
+        "<img alt=\"Rust Bitcoin logo by Hunter Trujillo, see license and source files under /logo\" src=\"./logo/rust-bitcoin.png\" width=\"300\" />",
+        "<p>Library with support for de/serialization, parsing and executing on data-structures",
+        "Likely entry points: bitcoin/embedded/src/main.rs, hashes/embedded/src/main.rs"
+      ],
+      "rollbackStrategy": [
+        "Keep the feature branch until changes are verified in production",
+        "Tag the commit before merging for easy revert",
+        "Document rollback procedure in PR description"
+      ],
+      "projectActionGuide": [
+        {
+          "title": "Orient Yourself",
+          "actions": [
+            "Start with the GitHub README, repo description, and issue discussion to confirm the project’s purpose and contributor expectations.",
+            "Open the likely entry points first: bitcoin/embedded/src/main.rs, hashes/embedded/src/main.rs.",
+            "Map the top-level working areas before coding: bitcoin, fuzz, fuzz/fuzz_targets."
+          ]
+        },
+        {
+          "title": "Run the Project Correctly",
+          "actions": [
+            "Install and validate the baseline with `npm install` and the project’s test script if available."
+          ]
+        },
+        {
+          "title": "Trace the Code Path",
+          "actions": [
+            "Trace the request or event flow from handlers into service modules and shared utilities before patching logic.",
+            "Follow existing naming, directory, and test placement conventions instead of introducing a new layout for this issue."
+          ]
+        },
+        {
+          "title": "Scope the Issue Change",
+          "actions": [
+            "Translate \"Script code\" into one small code path to change first, then expand only if the tests and issue discussion require it.",
+            "Update the nearest existing tests or create a focused regression test next to the implementation area rather than adding broad new coverage first.",
+            "Keep a short notes file or PR draft listing assumptions, repo-specific constraints, and any follow-up tasks that should not be bundled into v1."
+          ]
+        }
+      ],
+      "suggestedCodeChanges": [
+        "Inspect `bitcoin/src/consensus/encode.rs` first as a likely implementation target for the behavior implied by: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.",
+        "Check `bitcoin/src/crypto/sighash.rs` for wiring, exports, or shared helpers that must change alongside the main implementation.",
+        "Add or update regression coverage around `bitcoin/tests/consensus/encode.rs` to lock in the expected behavior for this issue.",
+        "Cross-check your implementation against the issue discussion, especially this guidance: For anyone reading this and thinking \"oh god this will delay`primitives`\", it will not -- the script code logic is all in extension traits in `bitcoin`, exactly because we haven't resolved how to handle scriptcodes. In some sense they are a type confusion in the bitcoin protocol itself, and we have to find the nicest way to mirror that type confusion in our own code.\n\nOf your two proposals @Kixunil I also prefer the former. In addition to being cleaner from a user point of view. I have two questions though:\n\n> Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n\n1. What do you mean by \"large item on the stack\"? A `ScriptCode` will be the same size as a `WitnessScript` or any other `Script<Tag>`.\n2. Can you briefly run through `AsRef`, `Borrow` and `Deref` and explain why we should have `AsRef` but not the other two? I think I agree with your choice but I then we should be explicit here so we have a record of what we were doing."
+      ],
+      "recommendedStartingPoints": [
+        {
+          "path": "bitcoin/src/consensus/encode.rs",
+          "reason": "Mentioned directly in the issue text or matched strongly against issue keywords.",
+          "confidence": "high"
+        },
+        {
+          "path": "bitcoin/src/crypto/sighash.rs",
+          "reason": "Mentioned directly in the issue text or matched strongly against issue keywords.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "repoInfo": {
+      "name": "rust-bitcoin",
+      "path": "rust-bitcoin/rust-bitcoin",
+      "slug": "rust-bitcoin/rust-bitcoin",
+      "type": "Backend API",
+      "source": "remote",
+      "overview": "Rust Bitcoin library",
+      "patterns": [],
+      "structure": {
+        "rootFiles": [
+          ".gitattributes",
+          ".gitignore",
+          "AGENTS.md",
+          "CHANGELOG.md",
+          "CLAUDE.md",
+          "CONTRIBUTING.md",
+          "Cargo-minimal.lock",
+          "Cargo-recent.lock",
+          "Cargo.toml",
+          "Cross.toml",
+          "LICENSE",
+          "README.md",
+          "SECURITY.md",
+          "clippy.toml",
+          "justfile",
+          "nightly-version",
+          "rbmt-version",
+          "rustfmt.toml",
+          "stable-version"
+        ],
+        "directories": [
+          {
+            "path": "bitcoin",
+            "purpose": "General purpose",
+            "fileCount": 115,
+            "importance": "high"
+          },
+          {
+            "path": "fuzz",
+            "purpose": "General purpose",
+            "fileCount": 108,
+            "importance": "high"
+          },
+          {
+            "path": "fuzz/fuzz_targets",
+            "purpose": "General purpose",
+            "fileCount": 99,
+            "importance": "high"
+          },
+          {
+            "path": "fuzz/fuzz_targets/bitcoin",
+            "purpose": "General purpose",
+            "fileCount": 82,
+            "importance": "high"
+          },
+          {
+            "path": "hashes",
+            "purpose": "General purpose",
+            "fileCount": 61,
+            "importance": "high"
+          },
+          {
+            "path": "bitcoin/tests",
+            "purpose": "Tests",
+            "fileCount": 57,
+            "importance": "high"
+          },
+          {
+            "path": "bitcoin/tests/data",
+            "purpose": "General purpose",
+            "fileCount": 55,
+            "importance": "high"
+          },
+          {
+            "path": "bitcoin/src",
+            "purpose": "Source code",
+            "fileCount": 40,
+            "importance": "high"
+          },
+          {
+            "path": "units",
+            "purpose": "General purpose",
+            "fileCount": 39,
+            "importance": "high"
+          },
+          {
+            "path": "primitives",
+            "purpose": "General purpose",
+            "fileCount": 35,
+            "importance": "high"
+          },
+          {
+            "path": "hashes/src",
+            "purpose": "Source code",
+            "fileCount": 30,
+            "importance": "high"
+          },
+          {
+            "path": "primitives/src",
+            "purpose": "Source code",
+            "fileCount": 25,
+            "importance": "high"
+          },
+          {
+            "path": "units/src",
+            "purpose": "Source code",
+            "fileCount": 25,
+            "importance": "high"
+          },
+          {
+            "path": ".github",
+            "purpose": "General purpose",
+            "fileCount": 22,
+            "importance": "high"
+          },
+          {
+            "path": "benches",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "consensus_encoding",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "internals",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "p2p",
+            "purpose": "General purpose",
+            "fileCount": 19,
+            "importance": "medium"
+          },
+          {
+            "path": ".github/workflows",
+            "purpose": "General purpose",
+            "fileCount": 18,
+            "importance": "medium"
+          },
+          {
+            "path": "docs",
+            "purpose": "Documentation",
+            "fileCount": 16,
+            "importance": "medium"
+          },
+          {
+            "path": "hashes/tests",
+            "purpose": "Tests",
+            "fileCount": 16,
+            "importance": "medium"
+          },
+          {
+            "path": "bitcoin/src/blockdata",
+            "purpose": "General purpose",
+            "fileCount": 15,
+            "importance": "medium"
+          },
+          {
+            "path": "contrib",
+            "purpose": "General purpose",
+            "fileCount": 14,
+            "importance": "medium"
+          },
+          {
+            "path": "internals/src",
+            "purpose": "Source code",
+            "fileCount": 14,
+            "importance": "medium"
+          },
+          {
+            "path": "benches/hashes",
+            "purpose": "General purpose",
+            "fileCount": 12,
+            "importance": "medium"
+          },
+          {
+            "path": "hashes/tests/data",
+            "purpose": "General purpose",
+            "fileCount": 12,
+            "importance": "medium"
+          },
+          {
+            "path": "p2p/src",
+            "purpose": "Source code",
+            "fileCount": 12,
+            "importance": "medium"
+          },
+          {
+            "path": "primitives/src/hash_types",
+            "purpose": "General purpose",
+            "fileCount": 11,
+            "importance": "medium"
+          },
+          {
+            "path": "crypto",
+            "purpose": "General purpose",
+            "fileCount": 9,
+            "importance": "medium"
+          },
+          {
+            "path": "io",
+            "purpose": "General purpose",
+            "fileCount": 9,
+            "importance": "medium"
+          }
+        ],
+        "entryPoints": [
+          "bitcoin/embedded/src/main.rs",
+          "hashes/embedded/src/main.rs"
+        ],
+        "keyComponents": [
+          {
+            "path": "bitcoin/embedded/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/address/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/crypto/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/merkle_tree/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/network/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/sign_message.rs",
+            "type": "source",
+            "exports": [
+              "sign_message"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/merkle_branch/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/decode/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/encode/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/embedded/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/hash160/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/hkdf/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/hmac/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/muhash/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/ripemd160/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha1/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256/crypto/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256d/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256t/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha384/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha3_256/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha512/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha512_256/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/siphash24/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "internals/src/error/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message.rs",
+            "type": "source",
+            "exports": [
+              "message"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_blockdata.rs",
+            "type": "source",
+            "exports": [
+              "message_blockdata"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_bloom.rs",
+            "type": "source",
+            "exports": [
+              "message_bloom"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_compact_blocks.rs",
+            "type": "source",
+            "exports": [
+              "message_compact_blocks"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_filter.rs",
+            "type": "source",
+            "exports": [
+              "message_filter"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_network.rs",
+            "type": "source",
+            "exports": [
+              "message_network"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "primitives/src/hash_types/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "primitives/src/script/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/amount/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/fee_rate/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/locktime/absolute/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/locktime/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/locktime/relative/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "addresses/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "base58/src/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "base58/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bip158/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/address/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/bip158.rs",
+            "type": "source",
+            "exports": [
+              "bip158"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/block.rs",
+            "type": "source",
+            "exports": [
+              "block"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/constants.rs",
+            "type": "source",
+            "exports": [
+              "constants"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/opcodes.rs",
+            "type": "source",
+            "exports": [
+              "opcodes"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/borrowed.rs",
+            "type": "source",
+            "exports": [
+              "borrowed"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/instruction.rs",
+            "type": "source",
+            "exports": [
+              "instruction"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/owned.rs",
+            "type": "source",
+            "exports": [
+              "owned"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/push_bytes.rs",
+            "type": "source",
+            "exports": [
+              "push_bytes"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/witness_program.rs",
+            "type": "source",
+            "exports": [
+              "witness_program"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/witness_version.rs",
+            "type": "source",
+            "exports": [
+              "witness_version"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/transaction.rs",
+            "type": "source",
+            "exports": [
+              "transaction"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/witness.rs",
+            "type": "source",
+            "exports": [
+              "witness"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/encode.rs",
+            "type": "source",
+            "exports": [
+              "encode"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/serde.rs",
+            "type": "source",
+            "exports": [
+              "serde"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/verification.rs",
+            "type": "source",
+            "exports": [
+              "verification"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus_validation.rs",
+            "type": "source",
+            "exports": [
+              "consensus_validation"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/crypto/key.rs",
+            "type": "source",
+            "exports": [
+              "key"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/crypto/sighash.rs",
+            "type": "source",
+            "exports": [
+              "sighash"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/hash_types.rs",
+            "type": "source",
+            "exports": [
+              "hash_types"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/internal_macros.rs",
+            "type": "source",
+            "exports": [
+              "internal_macros"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/network/params.rs",
+            "type": "source",
+            "exports": [
+              "params"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/policy.rs",
+            "type": "source",
+            "exports": [
+              "policy"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/pow.rs",
+            "type": "source",
+            "exports": [
+              "pow"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/merkle_branch/borrowed.rs",
+            "type": "source",
+            "exports": [
+              "borrowed"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/merkle_branch/buf.rs",
+            "type": "source",
+            "exports": [
+              "buf"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "chacha20_poly1305/src/chacha20.rs",
+            "type": "source",
+            "exports": [
+              "chacha20"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "chacha20_poly1305/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "chacha20_poly1305/src/poly1305.rs",
+            "type": "source",
+            "exports": [
+              "poly1305"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/compact_size.rs",
+            "type": "source",
+            "exports": [
+              "compact_size"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/decode/decoders.rs",
+            "type": "source",
+            "exports": [
+              "decoders"
+            ],
+            "dependencies": []
+          }
+        ]
+      },
+      "techStack": {
+        "language": "Rust",
+        "packageManager": "npm"
+      },
+      "highlights": [
+        "Rust Bitcoin library",
+        "<img alt=\"Rust Bitcoin logo by Hunter Trujillo, see license and source files under /logo\" src=\"./logo/rust-bitcoin.png\" width=\"300\" />",
+        "<p>Library with support for de/serialization, parsing and executing on data-structures",
+        "and network messages related to Bitcoin."
+      ],
+      "conventions": [],
+      "dependencies": {
+        "production": {},
+        "development": {},
+        "peerDependencies": {}
+      },
+      "defaultBranch": "master"
+    },
+    "issueInfo": {
+      "url": "https://github.com/rust-bitcoin/rust-bitcoin/issues/6079",
+      "repo": "rust-bitcoin",
+      "type": "feature",
+      "owner": "rust-bitcoin",
+      "state": "open",
+      "title": "Script code",
+      "author": "Kixunil",
+      "labels": [
+        "API break",
+        "1.0",
+        "API footgun"
+      ],
+      "number": 6079,
+      "source": "github-api",
+      "createdAt": "2026-04-24T13:48:18Z",
+      "updatedAt": "2026-04-27T15:24:13Z",
+      "complexity": "low",
+      "description": "Currently the script code is stored in `WitnessScriptBuf` which is misleading and inefficient. I propose to resolve it in one of the following ways:\n\n* Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n* Have `ScriptCodeEncoder` for pubkey and require that `script_code` impls `EncodeScriptCode` which is similar to `Encode` but only implemented for `WitnessScript` and `WScriptHash`, pros/cons are inverse of the above\n\nI was originally slightly preferring the latter but now that I wrote it out, I think I prefer the former. :D",
+      "requirements": [
+        "Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.",
+        "Have `ScriptCodeEncoder` for pubkey and require that `script_code` impls `EncodeScriptCode` which is similar to `Encode` but only implemented for `WitnessScript` and `WScriptHash`, pros/cons are inverse of the above"
+      ],
+      "relatedIssues": [],
+      "acceptanceCriteria": [],
+      "affectedComponents": [
+        "bitcoin/src/consensus/encode.rs",
+        "bitcoin/src/crypto/sighash.rs"
+      ],
+      "discussionHighlights": [
+        "For anyone reading this and thinking \"oh god this will delay`primitives`\", it will not -- the script code logic is all in extension traits in `bitcoin`, exactly because we haven't resolved how to handle scriptcodes. In some sense they are a type confusion in the bitcoin protocol itself, and we have to find the nicest way to mirror that type confusion in our own code.\n\nOf your two proposals @Kixunil I also prefer the former. In addition to being cleaner from a user point of view. I have two questions though:\n\n> Pro: simple and natural, we can de-monomorphize, con: large item on stack.\n\n1. What do you mean by \"large item on the stack\"? A `ScriptCode` will be the same size as a `WitnessScript` or any other `Script<Tag>`.\n2. Can you briefly run through `AsRef`, `Borrow` and `Deref` and explain why we should have `AsRef` but not the other two? I think I agree with your choice but I then we should be explicit here so we have a record of what we were doing.",
+        "It's more like inheritance than type confusion, it seems but it's certainly confusing inheritance. :D\n \n1. `ScriptCodeBuf` contains the entire script pre-serialized, where encoder would only need to contain a hash and the state (1B); though after looking at it properly, it's 3B difference, which is too ridiculous\n2. I'm not saying we shouldn't have the other two, I was just trying to be brief. We at least probably should NOT have `Deref<Output=ScriptCode>` on `WitnessScript` but I think we should have the others. I'd also refrain from `Mut`, I guess.",
+        "> * `ScriptCodeBuf` contains the entire script pre-serialized, where encoder would only need to contain a hash and the state (1B); though after looking at it properly, it's 3B difference, which is too ridiculous\n\nAh, I see, you're contrasting solutions 1 and 2, rather than solution 1 vs the status quo. TBH I think the encoder solution would be a non-starter because we need some sort of concrete scriptcode type (currently `WitnessScriptBuf`, under solution 1 it'd be `ScriptCodeBuf`) because rust-miniscript needs a return type for its [`Descriptor::script_code`](https://docs.rs/miniscript/latest/miniscript/descriptor/enum.Descriptor.html#method.script_code) function.\n\nI suppose rust-miniscript could just define its own type and then implement `ScriptCodeEncoder` on that, but this would annoy me :).\n\n> * I'm not saying we shouldn't have the other two, I was just trying to be brief. We at least probably should NOT have `Deref<Output=ScriptCode>` on `WitnessScript` but I think we should have the others. I'd also refrain from `Mut`, I guess.\n\nYeah, agreed let's refrain from `Mut`.\n\nAlso agreed let's avoid `Deref` -- I think it's okay on \"would this be an abuse of `Deref`?\" grounds because we're pointer casting between two objects which have identical representations and which represent the same thing. But not every `WitnessScript` is a `ScriptCode`, so I don't think we want any implicit conversions.\n\nOn `Borrow` I could go either way. I don't think it's that useful. This trait is really for representing \"I can take an object or a reference to an object, and I know which one at compile time\" and I don't think I've ever actually implemented it on something."
+      ]
+    },
+    "dependencyMap": {
+      "nodes": [
+        {
+          "id": "bitcoin/embedded/src/main.rs",
+          "path": "bitcoin/embedded/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/address/mod.rs",
+          "path": "bitcoin/src/address/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/mod.rs",
+          "path": "bitcoin/src/blockdata/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/mod.rs",
+          "path": "bitcoin/src/blockdata/script/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/mod.rs",
+          "path": "bitcoin/src/consensus/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/crypto/mod.rs",
+          "path": "bitcoin/src/crypto/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/merkle_tree/mod.rs",
+          "path": "bitcoin/src/merkle_tree/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/network/mod.rs",
+          "path": "bitcoin/src/network/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/sign_message.rs",
+          "path": "bitcoin/src/sign_message.rs",
+          "type": "source",
+          "exports": [
+            "sign_message"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/merkle_branch/mod.rs",
+          "path": "bitcoin/src/taproot/merkle_branch/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/mod.rs",
+          "path": "bitcoin/src/taproot/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/decode/mod.rs",
+          "path": "consensus_encoding/src/decode/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/encode/mod.rs",
+          "path": "consensus_encoding/src/encode/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/embedded/src/main.rs",
+          "path": "hashes/embedded/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/hash160/mod.rs",
+          "path": "hashes/src/hash160/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/hkdf/mod.rs",
+          "path": "hashes/src/hkdf/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/hmac/mod.rs",
+          "path": "hashes/src/hmac/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/muhash/mod.rs",
+          "path": "hashes/src/muhash/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/ripemd160/mod.rs",
+          "path": "hashes/src/ripemd160/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha1/mod.rs",
+          "path": "hashes/src/sha1/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256/crypto/mod.rs",
+          "path": "hashes/src/sha256/crypto/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256/mod.rs",
+          "path": "hashes/src/sha256/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256d/mod.rs",
+          "path": "hashes/src/sha256d/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256t/mod.rs",
+          "path": "hashes/src/sha256t/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha384/mod.rs",
+          "path": "hashes/src/sha384/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha3_256/mod.rs",
+          "path": "hashes/src/sha3_256/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha512/mod.rs",
+          "path": "hashes/src/sha512/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha512_256/mod.rs",
+          "path": "hashes/src/sha512_256/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/siphash24/mod.rs",
+          "path": "hashes/src/siphash24/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "internals/src/error/mod.rs",
+          "path": "internals/src/error/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message.rs",
+          "path": "p2p/src/message.rs",
+          "type": "source",
+          "exports": [
+            "message"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_blockdata.rs",
+          "path": "p2p/src/message_blockdata.rs",
+          "type": "source",
+          "exports": [
+            "message_blockdata"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_bloom.rs",
+          "path": "p2p/src/message_bloom.rs",
+          "type": "source",
+          "exports": [
+            "message_bloom"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_compact_blocks.rs",
+          "path": "p2p/src/message_compact_blocks.rs",
+          "type": "source",
+          "exports": [
+            "message_compact_blocks"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_filter.rs",
+          "path": "p2p/src/message_filter.rs",
+          "type": "source",
+          "exports": [
+            "message_filter"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_network.rs",
+          "path": "p2p/src/message_network.rs",
+          "type": "source",
+          "exports": [
+            "message_network"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "primitives/src/hash_types/mod.rs",
+          "path": "primitives/src/hash_types/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "primitives/src/script/mod.rs",
+          "path": "primitives/src/script/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/amount/mod.rs",
+          "path": "units/src/amount/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/fee_rate/mod.rs",
+          "path": "units/src/fee_rate/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/locktime/absolute/mod.rs",
+          "path": "units/src/locktime/absolute/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/locktime/mod.rs",
+          "path": "units/src/locktime/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/locktime/relative/mod.rs",
+          "path": "units/src/locktime/relative/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "addresses/src/lib.rs",
+          "path": "addresses/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "base58/src/error.rs",
+          "path": "base58/src/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "base58/src/lib.rs",
+          "path": "base58/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bip158/src/lib.rs",
+          "path": "bip158/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/address/error.rs",
+          "path": "bitcoin/src/address/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/bip158.rs",
+          "path": "bitcoin/src/bip158.rs",
+          "type": "source",
+          "exports": [
+            "bip158"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/block.rs",
+          "path": "bitcoin/src/blockdata/block.rs",
+          "type": "source",
+          "exports": [
+            "block"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/constants.rs",
+          "path": "bitcoin/src/blockdata/constants.rs",
+          "type": "source",
+          "exports": [
+            "constants"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/opcodes.rs",
+          "path": "bitcoin/src/blockdata/opcodes.rs",
+          "type": "source",
+          "exports": [
+            "opcodes"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/borrowed.rs",
+          "path": "bitcoin/src/blockdata/script/borrowed.rs",
+          "type": "source",
+          "exports": [
+            "borrowed"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/instruction.rs",
+          "path": "bitcoin/src/blockdata/script/instruction.rs",
+          "type": "source",
+          "exports": [
+            "instruction"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/owned.rs",
+          "path": "bitcoin/src/blockdata/script/owned.rs",
+          "type": "source",
+          "exports": [
+            "owned"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/push_bytes.rs",
+          "path": "bitcoin/src/blockdata/script/push_bytes.rs",
+          "type": "source",
+          "exports": [
+            "push_bytes"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/witness_program.rs",
+          "path": "bitcoin/src/blockdata/script/witness_program.rs",
+          "type": "source",
+          "exports": [
+            "witness_program"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/witness_version.rs",
+          "path": "bitcoin/src/blockdata/script/witness_version.rs",
+          "type": "source",
+          "exports": [
+            "witness_version"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/transaction.rs",
+          "path": "bitcoin/src/blockdata/transaction.rs",
+          "type": "source",
+          "exports": [
+            "transaction"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/witness.rs",
+          "path": "bitcoin/src/blockdata/witness.rs",
+          "type": "source",
+          "exports": [
+            "witness"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/encode.rs",
+          "path": "bitcoin/src/consensus/encode.rs",
+          "type": "source",
+          "exports": [
+            "encode"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/error.rs",
+          "path": "bitcoin/src/consensus/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/serde.rs",
+          "path": "bitcoin/src/consensus/serde.rs",
+          "type": "source",
+          "exports": [
+            "serde"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/verification.rs",
+          "path": "bitcoin/src/consensus/verification.rs",
+          "type": "source",
+          "exports": [
+            "verification"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus_validation.rs",
+          "path": "bitcoin/src/consensus_validation.rs",
+          "type": "source",
+          "exports": [
+            "consensus_validation"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/crypto/key.rs",
+          "path": "bitcoin/src/crypto/key.rs",
+          "type": "source",
+          "exports": [
+            "key"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/crypto/sighash.rs",
+          "path": "bitcoin/src/crypto/sighash.rs",
+          "type": "source",
+          "exports": [
+            "sighash"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/hash_types.rs",
+          "path": "bitcoin/src/hash_types.rs",
+          "type": "source",
+          "exports": [
+            "hash_types"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/internal_macros.rs",
+          "path": "bitcoin/src/internal_macros.rs",
+          "type": "source",
+          "exports": [
+            "internal_macros"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/lib.rs",
+          "path": "bitcoin/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/network/params.rs",
+          "path": "bitcoin/src/network/params.rs",
+          "type": "source",
+          "exports": [
+            "params"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/policy.rs",
+          "path": "bitcoin/src/policy.rs",
+          "type": "source",
+          "exports": [
+            "policy"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/pow.rs",
+          "path": "bitcoin/src/pow.rs",
+          "type": "source",
+          "exports": [
+            "pow"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/merkle_branch/borrowed.rs",
+          "path": "bitcoin/src/taproot/merkle_branch/borrowed.rs",
+          "type": "source",
+          "exports": [
+            "borrowed"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/merkle_branch/buf.rs",
+          "path": "bitcoin/src/taproot/merkle_branch/buf.rs",
+          "type": "source",
+          "exports": [
+            "buf"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "chacha20_poly1305/src/chacha20.rs",
+          "path": "chacha20_poly1305/src/chacha20.rs",
+          "type": "source",
+          "exports": [
+            "chacha20"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "chacha20_poly1305/src/lib.rs",
+          "path": "chacha20_poly1305/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "chacha20_poly1305/src/poly1305.rs",
+          "path": "chacha20_poly1305/src/poly1305.rs",
+          "type": "source",
+          "exports": [
+            "poly1305"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/compact_size.rs",
+          "path": "consensus_encoding/src/compact_size.rs",
+          "type": "source",
+          "exports": [
+            "compact_size"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/decode/decoders.rs",
+          "path": "consensus_encoding/src/decode/decoders.rs",
+          "type": "source",
+          "exports": [
+            "decoders"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        }
+      ],
+      "metrics": {
+        "totalNodes": 80,
+        "totalRelations": 0,
+        "highImpactNodes": 0,
+        "averageComplexity": 1.3,
+        "circularDependencies": 0
+      },
+      "relations": []
+    }
+  },
+  "conversations": [
+    {
+      "question": "Which file should I change first?",
+      "answer": "Start with `bitcoin/src/consensus/encode.rs`. After that, inspect `bitcoin/src/crypto/sighash.rs` to confirm the wiring around the first change.",
+      "evidence": [
+        "bitcoin/src/consensus/encode.rs: Mentioned directly in the issue text or matched strongly against issue keywords.",
+        "bitcoin/src/crypto/sighash.rs: Mentioned directly in the issue text or matched strongly against issue keywords."
+      ],
+      "followUps": [
+        "Why is that file the best starting point?",
+        "What code path should I trace first?"
+      ],
+      "createdAt": "2026-05-17T14:47:28.206Z"
+    },
+    {
+      "question": "Why is that file the best starting point?",
+      "answer": "Bob’s current recommendation for issue #6079 is to start with `bitcoin/src/consensus/encode.rs`, keep the first patch narrow, and validate it with a focused regression test before broadening the change. If you ask about the project overview, a specific file path, code excerpts, tests, commands, docs, or the PR draft, Bob can answer with project-specific guidance.",
+      "evidence": [
+        "Project: rust-bitcoin",
+        "Issue objective: Have `ScriptCodeTag`, `type ScriptCode = Script<ScriptCodeTag>`, and `ScriptCodeBuf([u8; SCRIPT_CODE_LEN])` which derefs/asrefs to `ScriptCode`, `impl AsRef<ScriptCode> for WitnessScript`, take `impl AsRef<ScriptCode>` to compute sighash. Pro: simple and natural, we can de-monomorphize, con: large item on stack.",
+        "Suggested files: bitcoin/src/consensus/encode.rs, bitcoin/src/crypto/sighash.rs"
+      ],
+      "followUps": [
+        "What does this project do?",
+        "Which file should I change first?",
+        "Show me the current code for the first file"
+      ],
+      "createdAt": "2026-05-17T14:47:33.705Z"
+    }
+  ],
+  "exportMetadata": {
+    "exportedAt": "2026-05-18T13:38:38.337Z",
+    "version": "1.0.0"
+  }
+}

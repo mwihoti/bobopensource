@@ -1,0 +1,2239 @@
+{
+  "sessionId": "3",
+  "userId": "user_3DqwnJfrouBO8irQgfaAzk29RIG",
+  "issueUrl": "https://github.com/rust-bitcoin/rust-bitcoin/issues/6174",
+  "issueTitle": "Updating the nightly toolchain for all LTS branches?",
+  "repository": "rust-bitcoin/rust-bitcoin",
+  "createdAt": "2026-05-17T14:28:23.790Z",
+  "analysisResult": {
+    "logs": [],
+    "plan": {
+      "issue": {
+        "url": "https://github.com/rust-bitcoin/rust-bitcoin/issues/6174",
+        "repo": "rust-bitcoin",
+        "type": "enhancement",
+        "owner": "rust-bitcoin",
+        "state": "open",
+        "title": "Updating the nightly toolchain for all LTS branches?",
+        "author": "tcharding",
+        "labels": [],
+        "number": 6174,
+        "source": "github-api",
+        "createdAt": "2026-05-12T21:18:38Z",
+        "updatedAt": "2026-05-13T14:28:18Z",
+        "complexity": "low",
+        "description": "We are pushing to use `cargo rbmt` for all LTS release branches. Perhaps after that we should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches? \n\nRequires: #6163 (and similar to `0.31.x`).",
+        "requirements": [
+          "should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches"
+        ],
+        "relatedIssues": [
+          6163
+        ],
+        "acceptanceCriteria": [],
+        "affectedComponents": [
+          "0.31.x"
+        ],
+        "discussionHighlights": [
+          "If anyone picks this up please do not delete `./nightly-toolchain` until explicit ack from @apoelstra to do so.",
+          "You can go ahead and delete it, your PR just won't be merged for a couple days at least :).\n\nconcept ACK running the bot on the LTS branches."
+        ]
+      },
+      "risks": [
+        {
+          "level": "medium",
+          "impact": "Harder to verify correctness and prevent regressions",
+          "mitigation": [
+            "Create comprehensive test suite",
+            "Add tests before making changes",
+            "Consider adding integration tests"
+          ],
+          "description": "No existing test coverage"
+        }
+      ],
+      "steps": [
+        {
+          "files": [],
+          "title": "Setup and Preparation",
+          "number": 1,
+          "actions": [
+            "Create a new feature branch from main/master.",
+            "Read the issue title, requirements, and acceptance criteria until you can restate the objective as: \"should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches\".",
+            "Open the first likely implementation files before coding: 0.31.x.",
+            "Trace where those files are imported or invoked so you understand the full code path that will change.",
+            "Run the project or test baseline once so you know the current behavior before introducing changes."
+          ],
+          "pitfalls": [
+            "Do not start patching the first file you see without tracing where the relevant behavior actually enters the system."
+          ],
+          "resources": [
+            {
+              "type": "command",
+              "title": "Create Branch",
+              "content": "git checkout -b bob/issue-6174-updating-the-nightly-toolchain-for-all-l",
+              "language": "bash",
+              "description": "Suggested branch name based on the issue title."
+            },
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "README Context",
+              "content": "<div align=\"center\">\n  <h1>Rust Bitcoin</h1>\n\n  <img alt=\"Rust Bitcoin logo by Hunter Trujillo, see license and source files under /logo\" src=\"./logo/rust-bitcoin.png\" width=\"300\" />\n\n  <p>Library with support for de/serialization, parsing and executing on data-structures\n    and network messages related to Bitcoin.\n  </p>\n\n  <p>\n    <a href=\"https://crates.io/crates/bitcoin\"><img alt=\"Crate Info\" src=\"https://img.shields.io/crates/v/bitcoin.svg\"/></a>\n    <a href=\"https://github.com/rust-bitcoin/rust-bitcoin/blob/master/LICENSE\"><img alt=\"CC0 1.0 Universal Licensed\" src=\"https://img.shields.io/badge/license-CC0--1.0-blue.svg\"/></a>\n    <a href=\"https://github.com/rust-bitcoin/rust-bitcoin/actions?query=workflow%3AContinuous%20integration\"><img alt=\"CI Status\" src=\"https://github.com/rust-bitcoin/rust-bitcoin/workflows/Continuous%20integration/badge.svg\"></a>\n    <a href=\"https://docs.rs/bitcoin\"><img alt=\"API Docs\" src=\"https://img.shields.io/badge/docs.rs-bitcoin-green\"/></a>\n    <a href=\"https://blog.rust-lang.org/2023/11/16/Rust-1.74.0/\"><img alt=\"Rustc Version 1.74.0+\" src=\"https://img.shields.io/badge/rustc-1.74.0%2B-lightgrey.svg\"/></a>\n    <a href=\"https://gnusha.org/bitcoin-rust/\"><img alt=\"Chat on IRC\" src=\"https://img.shields.io/badge/irc-%23bitcoin--rust%20on%20libera.chat-blue\"></a>\n    <a href=\"https://github.com/model-checking/kani\"><img alt=\"kani\" src=\"https://github.com/rust-bitcoin/rust-bitcoin/workflows/Kani%20CI/badge.svg\"></a>\n  </p>\n</div>\n\n[Documentation](https://docs.rs/bitcoin/)\n\nSupports (or should support)\n\n* De/serialization of Bitcoin protocol network messages\n* De/serialization of blocks and transactions\n* Script de/serialization\n* Private keys and address creation, de/serialization and validation (including full BIP-0032 support)\n* PSBT v0 de/serialization and all but the Input Finalizer role. Use [rust-miniscript](https://docs.rs/miniscript/latest/miniscript/psbt/index.html) to finalize.",
+              "language": "markdown",
+              "description": "Read this first so you understand the project purpose and contributor workflow."
+            }
+          ],
+          "description": "Create feature branch and review existing code",
+          "dependencies": [],
+          "estimatedMinutes": 15,
+          "validationCriteria": [
+            "Feature branch created",
+            "All affected files reviewed",
+            "Development environment ready"
+          ]
+        },
+        {
+          "files": [
+            "0.31.x"
+          ],
+          "title": "Implement Changes in 0.31.x",
+          "number": 2,
+          "actions": [
+            "Open `0.31.x` and identify the exported function, class, or handler that currently owns the behavior closest to: should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches.",
+            "Trace the inputs, outputs, and adjacent callers around `0.31.x` so you know exactly where the new behavior must be inserted.",
+            "Adjust the existing logic in `0.31.x` to improve the current behavior without regressing supported flows.",
+            "Add or update nearby type guards, return types, or schema handling in `0.31.x` if the new behavior changes data shape.",
+            "Keep the implementation aligned with existing patterns already used in neighboring files to avoid introducing a one-off design."
+          ],
+          "pitfalls": [
+            "Do not add parallel logic paths in `0.31.x` if the existing code already has a single place that owns this behavior."
+          ],
+          "resources": [
+            {
+              "path": "0.31.x",
+              "type": "warning",
+              "title": "Implementation Target Warning",
+              "content": "Bob treats `0.31.x` as investigation context, not a confirmed code-edit location. Prefer executable source files before generating a patch preview in remote mode.",
+              "description": "No patch preview was generated because the candidate file is documentation, schema, or low-confidence context."
+            }
+          ],
+          "description": "Enhance functionality in 0.31.x",
+          "dependencies": [
+            1
+          ],
+          "estimatedMinutes": 30,
+          "validationCriteria": [
+            "The change in `0.31.x` directly satisfies the issue objective: should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches.",
+            "The code path in `0.31.x` still follows the surrounding repository patterns and type conventions.",
+            "No new lint, type, or obvious runtime issues were introduced.",
+            "The updated behavior is covered by a focused test or existing test extension."
+          ]
+        },
+        {
+          "files": [],
+          "title": "Add New Tests",
+          "number": 3,
+          "actions": [
+            "Create or update focused tests near the implementation area: the nearest existing test file.",
+            "Write one happy-path test that proves the issue objective now works: should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches.",
+            "Add at least one edge-case or failure-path test that would have caught the regression or missing behavior earlier.",
+            "If the issue changes interactions between modules, add one integration-style assertion that proves the wiring still works end-to-end."
+          ],
+          "pitfalls": [
+            "Do not create tests that mirror the implementation too closely; assert observable behavior instead."
+          ],
+          "resources": [],
+          "description": "Create comprehensive tests for new functionality",
+          "dependencies": [
+            2
+          ],
+          "estimatedMinutes": 60,
+          "validationCriteria": [
+            "The tests prove the main expected outcome for: should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches.",
+            "At least one edge case or failure path is covered.",
+            "The new tests fail without the implementation change and pass with it."
+          ]
+        },
+        {
+          "files": [
+            "README.md",
+            "docs/**"
+          ],
+          "title": "Update Documentation",
+          "number": 4,
+          "actions": [
+            "Update inline comments only where the changed behavior in 0.31.x would otherwise be hard to understand.",
+            "If \"should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches\" changes developer-facing or user-facing behavior, document that change in README or nearby docs.",
+            "If the change is internal-only, say so explicitly and keep the documentation local to the code instead of editing the README.",
+            "Do not add broad documentation churn; document only the new contract, caveat, or usage pattern introduced by this issue."
+          ],
+          "pitfalls": [
+            "Do not add broad README churn if the issue only changes an internal behavior contract."
+          ],
+          "resources": [
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "Current Code: README.md",
+              "content": "</p>\n</div>\n\n[Documentation](https://docs.rs/bitcoin/)\n\nSupports (or should support)\n\n* De/serialization of Bitcoin protocol network messages\n* De/serialization of blocks and transactions\n* Script de/serialization\n* Private keys and address creation, de/serialization and validation (including full BIP-0032 support)\n* PSBT v0 de/serialization and all but the Input Finalizer role. Use [rust-miniscript](https://docs.rs/miniscript/latest/miniscript/psbt/index.html) to finalize.\n\nFor JSONRPC interaction with Bitcoin Core, it is recommended to use\n[rust-bitcoincore-rpc](https://github.com/rust-bitcoin/rust-bitcoincore-rpc).\n\nIt is recommended to always use [cargo-crev](https://github.com/crev-dev/cargo-crev) to verify the\ntrustworthiness of each of your dependencies, including this one.\n\n## Known limitations\n\n### Consensus\n\nThis library **must not** be used for consensus code (i.e. fully validating blockchain data). It\ntechnically supports doing this, but doing so is very ill-advised because there are many deviations,\nknown and unknown, between this library and the Bitcoin Core reference implementation. In a\nconsensus based cryptocurrency, such as Bitcoin, it is critical that all parties are using the same\nrules to validate data, and this library is simply unable to implement the same rules as Core.\n\nGiven the complexity of both C++ and Rust, it is unlikely that this will ever be fixed, and there",
+              "language": "markdown",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "type": "command",
+              "title": "Documentation Command",
+              "content": "rg -n \"should patch the update-nightly-toolchain bot\" README.md docs || true",
+              "language": "bash",
+              "description": "Search docs for the old behavior before updating them."
+            }
+          ],
+          "description": "Update relevant documentation and comments",
+          "dependencies": [
+            3
+          ],
+          "estimatedMinutes": 20,
+          "validationCriteria": [
+            "Any non-obvious behavior change is documented close to the code or in the relevant project docs.",
+            "The documentation reflects the new expected behavior for: should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches."
+          ]
+        },
+        {
+          "files": [],
+          "title": "Prepare for Code Review",
+          "number": 5,
+          "actions": [
+            "Re-read the final diff starting with: 0.31.x.",
+            "Write a PR summary that explains the problem, the chosen code path, and how the implementation now achieves: should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches.",
+            "Include the exact tests or manual verification steps you used so another contributor can validate the change quickly."
+          ],
+          "pitfalls": [
+            "Do not open a PR without listing the exact files touched and how they relate to the issue objective."
+          ],
+          "resources": [],
+          "description": "Final checks and PR preparation",
+          "dependencies": [
+            4
+          ],
+          "estimatedMinutes": 15,
+          "validationCriteria": [
+            "The final diff is small enough to review confidently.",
+            "The PR description explains how the code changes achieve: should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches.",
+            "Validation steps are explicit and reproducible by another developer."
+          ]
+        }
+      ],
+      "prDraft": {
+        "tests": [
+          "nearest existing behavior test or nearest existing behavior test",
+          "manual simulation or runtime verification of the changed flow"
+        ],
+        "title": "Update should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches",
+        "summary": [
+          "updates 0.31.x to address should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches",
+          "adds regression coverage for the changed behavior",
+          "documents the expected behavior where needed"
+        ]
+      },
+      "evidence": [
+        {
+          "label": "inspect repository structure",
+          "detail": "30 directories analyzed"
+        },
+        {
+          "label": "read README context",
+          "detail": "Rust Bitcoin library"
+        },
+        {
+          "label": "identify likely affected files",
+          "detail": "1 candidate files ranked"
+        },
+        {
+          "label": "generate implementation roadmap",
+          "detail": "remote repository guidance with step validation"
+        },
+        {
+          "label": "detect insertion point",
+          "detail": "best-effort semantic and structural insertion analysis"
+        },
+        {
+          "label": "produce diff preview",
+          "detail": "git-apply compatible preview when file content is available"
+        }
+      ],
+      "warnings": [],
+      "riskSummary": {
+        "level": "medium",
+        "reason": "No existing test coverage"
+      },
+      "reviewPoints": [
+        "After step 2: Review core implementation",
+        "After step 3: Review test coverage",
+        "After step 5: Final code review before PR"
+      ],
+      "testStrategy": {
+        "e2eTests": [
+          "Test complete user workflow",
+          "Verify all acceptance criteria"
+        ],
+        "unitTests": [
+          "Test all functions in 0.31.x",
+          "Test error handling in 0.31.x"
+        ],
+        "criticalPaths": [
+          "Main functionality in affected components"
+        ],
+        "coverageTarget": 80,
+        "integrationTests": []
+      },
+      "openQuestions": [
+        "What concrete success conditions would let a maintainer accept the first implementation?",
+        "What work should be explicitly deferred from v1 so the first contribution stays narrowly reviewable?"
+      ],
+      "prerequisites": [
+        "Review related issues: #6163",
+        "Ensure development environment is set up",
+        "Have necessary access permissions",
+        "Understand the existing codebase architecture"
+      ],
+      "estimatedHours": 2.5,
+      "projectOverview": [
+        "Rust Bitcoin library",
+        "Project type: Backend API",
+        "Tech stack: Rust",
+        "<img alt=\"Rust Bitcoin logo by Hunter Trujillo, see license and source files under /logo\" src=\"./logo/rust-bitcoin.png\" width=\"300\" />",
+        "<p>Library with support for de/serialization, parsing and executing on data-structures",
+        "Likely entry points: bitcoin/embedded/src/main.rs, hashes/embedded/src/main.rs"
+      ],
+      "rollbackStrategy": [
+        "Keep the feature branch until changes are verified in production",
+        "Tag the commit before merging for easy revert",
+        "Document rollback procedure in PR description"
+      ],
+      "projectActionGuide": [
+        {
+          "title": "Orient Yourself",
+          "actions": [
+            "Start with the GitHub README, repo description, and issue discussion to confirm the project’s purpose and contributor expectations.",
+            "Open the likely entry points first: bitcoin/embedded/src/main.rs, hashes/embedded/src/main.rs.",
+            "Map the top-level working areas before coding: bitcoin, fuzz, fuzz/fuzz_targets."
+          ]
+        },
+        {
+          "title": "Run the Project Correctly",
+          "actions": [
+            "Install and validate the baseline with `npm install` and the project’s test script if available."
+          ]
+        },
+        {
+          "title": "Trace the Code Path",
+          "actions": [
+            "Trace the request or event flow from handlers into service modules and shared utilities before patching logic.",
+            "Follow existing naming, directory, and test placement conventions instead of introducing a new layout for this issue."
+          ]
+        },
+        {
+          "title": "Scope the Issue Change",
+          "actions": [
+            "Translate \"Updating the nightly toolchain for all LTS branches?\" into one small code path to change first, then expand only if the tests and issue discussion require it.",
+            "Update the nearest existing tests or create a focused regression test next to the implementation area rather than adding broad new coverage first.",
+            "Keep a short notes file or PR draft listing assumptions, repo-specific constraints, and any follow-up tasks that should not be bundled into v1."
+          ]
+        }
+      ],
+      "suggestedCodeChanges": [
+        "Read `0.31.x` as background context before choosing the first real edit target.",
+        "Cross-check your implementation against the issue discussion, especially this guidance: If anyone picks this up please do not delete `./nightly-toolchain` until explicit ack from @apoelstra to do so."
+      ],
+      "recommendedStartingPoints": [
+        {
+          "path": "0.31.x",
+          "reason": "Mentioned directly in the issue text or matched strongly against issue keywords.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "repoInfo": {
+      "name": "rust-bitcoin",
+      "path": "rust-bitcoin/rust-bitcoin",
+      "slug": "rust-bitcoin/rust-bitcoin",
+      "type": "Backend API",
+      "source": "remote",
+      "overview": "Rust Bitcoin library",
+      "patterns": [],
+      "structure": {
+        "rootFiles": [
+          ".gitattributes",
+          ".gitignore",
+          "AGENTS.md",
+          "CHANGELOG.md",
+          "CLAUDE.md",
+          "CONTRIBUTING.md",
+          "Cargo-minimal.lock",
+          "Cargo-recent.lock",
+          "Cargo.toml",
+          "Cross.toml",
+          "LICENSE",
+          "README.md",
+          "SECURITY.md",
+          "clippy.toml",
+          "justfile",
+          "nightly-version",
+          "rbmt-version",
+          "rustfmt.toml",
+          "stable-version"
+        ],
+        "directories": [
+          {
+            "path": "bitcoin",
+            "purpose": "General purpose",
+            "fileCount": 115,
+            "importance": "high"
+          },
+          {
+            "path": "fuzz",
+            "purpose": "General purpose",
+            "fileCount": 108,
+            "importance": "high"
+          },
+          {
+            "path": "fuzz/fuzz_targets",
+            "purpose": "General purpose",
+            "fileCount": 99,
+            "importance": "high"
+          },
+          {
+            "path": "fuzz/fuzz_targets/bitcoin",
+            "purpose": "General purpose",
+            "fileCount": 82,
+            "importance": "high"
+          },
+          {
+            "path": "hashes",
+            "purpose": "General purpose",
+            "fileCount": 61,
+            "importance": "high"
+          },
+          {
+            "path": "bitcoin/tests",
+            "purpose": "Tests",
+            "fileCount": 57,
+            "importance": "high"
+          },
+          {
+            "path": "bitcoin/tests/data",
+            "purpose": "General purpose",
+            "fileCount": 55,
+            "importance": "high"
+          },
+          {
+            "path": "bitcoin/src",
+            "purpose": "Source code",
+            "fileCount": 40,
+            "importance": "high"
+          },
+          {
+            "path": "units",
+            "purpose": "General purpose",
+            "fileCount": 39,
+            "importance": "high"
+          },
+          {
+            "path": "primitives",
+            "purpose": "General purpose",
+            "fileCount": 35,
+            "importance": "high"
+          },
+          {
+            "path": "hashes/src",
+            "purpose": "Source code",
+            "fileCount": 30,
+            "importance": "high"
+          },
+          {
+            "path": "primitives/src",
+            "purpose": "Source code",
+            "fileCount": 25,
+            "importance": "high"
+          },
+          {
+            "path": "units/src",
+            "purpose": "Source code",
+            "fileCount": 25,
+            "importance": "high"
+          },
+          {
+            "path": ".github",
+            "purpose": "General purpose",
+            "fileCount": 22,
+            "importance": "high"
+          },
+          {
+            "path": "benches",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "consensus_encoding",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "internals",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "p2p",
+            "purpose": "General purpose",
+            "fileCount": 19,
+            "importance": "medium"
+          },
+          {
+            "path": ".github/workflows",
+            "purpose": "General purpose",
+            "fileCount": 18,
+            "importance": "medium"
+          },
+          {
+            "path": "docs",
+            "purpose": "Documentation",
+            "fileCount": 16,
+            "importance": "medium"
+          },
+          {
+            "path": "hashes/tests",
+            "purpose": "Tests",
+            "fileCount": 16,
+            "importance": "medium"
+          },
+          {
+            "path": "bitcoin/src/blockdata",
+            "purpose": "General purpose",
+            "fileCount": 15,
+            "importance": "medium"
+          },
+          {
+            "path": "contrib",
+            "purpose": "General purpose",
+            "fileCount": 14,
+            "importance": "medium"
+          },
+          {
+            "path": "internals/src",
+            "purpose": "Source code",
+            "fileCount": 14,
+            "importance": "medium"
+          },
+          {
+            "path": "benches/hashes",
+            "purpose": "General purpose",
+            "fileCount": 12,
+            "importance": "medium"
+          },
+          {
+            "path": "hashes/tests/data",
+            "purpose": "General purpose",
+            "fileCount": 12,
+            "importance": "medium"
+          },
+          {
+            "path": "p2p/src",
+            "purpose": "Source code",
+            "fileCount": 12,
+            "importance": "medium"
+          },
+          {
+            "path": "primitives/src/hash_types",
+            "purpose": "General purpose",
+            "fileCount": 11,
+            "importance": "medium"
+          },
+          {
+            "path": "crypto",
+            "purpose": "General purpose",
+            "fileCount": 9,
+            "importance": "medium"
+          },
+          {
+            "path": "io",
+            "purpose": "General purpose",
+            "fileCount": 9,
+            "importance": "medium"
+          }
+        ],
+        "entryPoints": [
+          "bitcoin/embedded/src/main.rs",
+          "hashes/embedded/src/main.rs"
+        ],
+        "keyComponents": [
+          {
+            "path": "bitcoin/embedded/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/address/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/crypto/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/merkle_tree/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/network/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/sign_message.rs",
+            "type": "source",
+            "exports": [
+              "sign_message"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/merkle_branch/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/decode/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/encode/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/embedded/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/hash160/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/hkdf/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/hmac/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/muhash/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/ripemd160/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha1/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256/crypto/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256d/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha256t/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha384/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha3_256/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha512/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/sha512_256/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "hashes/src/siphash24/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "internals/src/error/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message.rs",
+            "type": "source",
+            "exports": [
+              "message"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_blockdata.rs",
+            "type": "source",
+            "exports": [
+              "message_blockdata"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_bloom.rs",
+            "type": "source",
+            "exports": [
+              "message_bloom"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_compact_blocks.rs",
+            "type": "source",
+            "exports": [
+              "message_compact_blocks"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_filter.rs",
+            "type": "source",
+            "exports": [
+              "message_filter"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "p2p/src/message_network.rs",
+            "type": "source",
+            "exports": [
+              "message_network"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "primitives/src/hash_types/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "primitives/src/script/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/amount/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/fee_rate/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/locktime/absolute/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/locktime/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "units/src/locktime/relative/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "addresses/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "base58/src/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "base58/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bip158/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/address/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/bip158.rs",
+            "type": "source",
+            "exports": [
+              "bip158"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/block.rs",
+            "type": "source",
+            "exports": [
+              "block"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/constants.rs",
+            "type": "source",
+            "exports": [
+              "constants"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/opcodes.rs",
+            "type": "source",
+            "exports": [
+              "opcodes"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/borrowed.rs",
+            "type": "source",
+            "exports": [
+              "borrowed"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/instruction.rs",
+            "type": "source",
+            "exports": [
+              "instruction"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/owned.rs",
+            "type": "source",
+            "exports": [
+              "owned"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/push_bytes.rs",
+            "type": "source",
+            "exports": [
+              "push_bytes"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/witness_program.rs",
+            "type": "source",
+            "exports": [
+              "witness_program"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/script/witness_version.rs",
+            "type": "source",
+            "exports": [
+              "witness_version"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/transaction.rs",
+            "type": "source",
+            "exports": [
+              "transaction"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/blockdata/witness.rs",
+            "type": "source",
+            "exports": [
+              "witness"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/encode.rs",
+            "type": "source",
+            "exports": [
+              "encode"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/serde.rs",
+            "type": "source",
+            "exports": [
+              "serde"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus/verification.rs",
+            "type": "source",
+            "exports": [
+              "verification"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/consensus_validation.rs",
+            "type": "source",
+            "exports": [
+              "consensus_validation"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/crypto/key.rs",
+            "type": "source",
+            "exports": [
+              "key"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/crypto/sighash.rs",
+            "type": "source",
+            "exports": [
+              "sighash"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/hash_types.rs",
+            "type": "source",
+            "exports": [
+              "hash_types"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/internal_macros.rs",
+            "type": "source",
+            "exports": [
+              "internal_macros"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/network/params.rs",
+            "type": "source",
+            "exports": [
+              "params"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/policy.rs",
+            "type": "source",
+            "exports": [
+              "policy"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/pow.rs",
+            "type": "source",
+            "exports": [
+              "pow"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/merkle_branch/borrowed.rs",
+            "type": "source",
+            "exports": [
+              "borrowed"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "bitcoin/src/taproot/merkle_branch/buf.rs",
+            "type": "source",
+            "exports": [
+              "buf"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "chacha20_poly1305/src/chacha20.rs",
+            "type": "source",
+            "exports": [
+              "chacha20"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "chacha20_poly1305/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "chacha20_poly1305/src/poly1305.rs",
+            "type": "source",
+            "exports": [
+              "poly1305"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/compact_size.rs",
+            "type": "source",
+            "exports": [
+              "compact_size"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "consensus_encoding/src/decode/decoders.rs",
+            "type": "source",
+            "exports": [
+              "decoders"
+            ],
+            "dependencies": []
+          }
+        ]
+      },
+      "techStack": {
+        "language": "Rust",
+        "packageManager": "npm"
+      },
+      "highlights": [
+        "Rust Bitcoin library",
+        "<img alt=\"Rust Bitcoin logo by Hunter Trujillo, see license and source files under /logo\" src=\"./logo/rust-bitcoin.png\" width=\"300\" />",
+        "<p>Library with support for de/serialization, parsing and executing on data-structures",
+        "and network messages related to Bitcoin."
+      ],
+      "conventions": [],
+      "dependencies": {
+        "production": {},
+        "development": {},
+        "peerDependencies": {}
+      },
+      "defaultBranch": "master"
+    },
+    "issueInfo": {
+      "url": "https://github.com/rust-bitcoin/rust-bitcoin/issues/6174",
+      "repo": "rust-bitcoin",
+      "type": "enhancement",
+      "owner": "rust-bitcoin",
+      "state": "open",
+      "title": "Updating the nightly toolchain for all LTS branches?",
+      "author": "tcharding",
+      "labels": [],
+      "number": 6174,
+      "source": "github-api",
+      "createdAt": "2026-05-12T21:18:38Z",
+      "updatedAt": "2026-05-13T14:28:18Z",
+      "complexity": "low",
+      "description": "We are pushing to use `cargo rbmt` for all LTS release branches. Perhaps after that we should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches? \n\nRequires: #6163 (and similar to `0.31.x`).",
+      "requirements": [
+        "should patch the update-nightly-toolchain bot to raise a PR against each of the LTS branches"
+      ],
+      "relatedIssues": [
+        6163
+      ],
+      "acceptanceCriteria": [],
+      "affectedComponents": [
+        "0.31.x"
+      ],
+      "discussionHighlights": [
+        "If anyone picks this up please do not delete `./nightly-toolchain` until explicit ack from @apoelstra to do so.",
+        "You can go ahead and delete it, your PR just won't be merged for a couple days at least :).\n\nconcept ACK running the bot on the LTS branches."
+      ]
+    },
+    "dependencyMap": {
+      "nodes": [
+        {
+          "id": "bitcoin/embedded/src/main.rs",
+          "path": "bitcoin/embedded/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/address/mod.rs",
+          "path": "bitcoin/src/address/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/mod.rs",
+          "path": "bitcoin/src/blockdata/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/mod.rs",
+          "path": "bitcoin/src/blockdata/script/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/mod.rs",
+          "path": "bitcoin/src/consensus/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/crypto/mod.rs",
+          "path": "bitcoin/src/crypto/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/merkle_tree/mod.rs",
+          "path": "bitcoin/src/merkle_tree/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/network/mod.rs",
+          "path": "bitcoin/src/network/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/sign_message.rs",
+          "path": "bitcoin/src/sign_message.rs",
+          "type": "source",
+          "exports": [
+            "sign_message"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/merkle_branch/mod.rs",
+          "path": "bitcoin/src/taproot/merkle_branch/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/mod.rs",
+          "path": "bitcoin/src/taproot/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/decode/mod.rs",
+          "path": "consensus_encoding/src/decode/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/encode/mod.rs",
+          "path": "consensus_encoding/src/encode/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/embedded/src/main.rs",
+          "path": "hashes/embedded/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/hash160/mod.rs",
+          "path": "hashes/src/hash160/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/hkdf/mod.rs",
+          "path": "hashes/src/hkdf/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/hmac/mod.rs",
+          "path": "hashes/src/hmac/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/muhash/mod.rs",
+          "path": "hashes/src/muhash/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/ripemd160/mod.rs",
+          "path": "hashes/src/ripemd160/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha1/mod.rs",
+          "path": "hashes/src/sha1/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256/crypto/mod.rs",
+          "path": "hashes/src/sha256/crypto/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256/mod.rs",
+          "path": "hashes/src/sha256/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256d/mod.rs",
+          "path": "hashes/src/sha256d/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha256t/mod.rs",
+          "path": "hashes/src/sha256t/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha384/mod.rs",
+          "path": "hashes/src/sha384/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha3_256/mod.rs",
+          "path": "hashes/src/sha3_256/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha512/mod.rs",
+          "path": "hashes/src/sha512/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/sha512_256/mod.rs",
+          "path": "hashes/src/sha512_256/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "hashes/src/siphash24/mod.rs",
+          "path": "hashes/src/siphash24/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "internals/src/error/mod.rs",
+          "path": "internals/src/error/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message.rs",
+          "path": "p2p/src/message.rs",
+          "type": "source",
+          "exports": [
+            "message"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_blockdata.rs",
+          "path": "p2p/src/message_blockdata.rs",
+          "type": "source",
+          "exports": [
+            "message_blockdata"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_bloom.rs",
+          "path": "p2p/src/message_bloom.rs",
+          "type": "source",
+          "exports": [
+            "message_bloom"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_compact_blocks.rs",
+          "path": "p2p/src/message_compact_blocks.rs",
+          "type": "source",
+          "exports": [
+            "message_compact_blocks"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_filter.rs",
+          "path": "p2p/src/message_filter.rs",
+          "type": "source",
+          "exports": [
+            "message_filter"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "p2p/src/message_network.rs",
+          "path": "p2p/src/message_network.rs",
+          "type": "source",
+          "exports": [
+            "message_network"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "primitives/src/hash_types/mod.rs",
+          "path": "primitives/src/hash_types/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "primitives/src/script/mod.rs",
+          "path": "primitives/src/script/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/amount/mod.rs",
+          "path": "units/src/amount/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/fee_rate/mod.rs",
+          "path": "units/src/fee_rate/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/locktime/absolute/mod.rs",
+          "path": "units/src/locktime/absolute/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/locktime/mod.rs",
+          "path": "units/src/locktime/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "units/src/locktime/relative/mod.rs",
+          "path": "units/src/locktime/relative/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "addresses/src/lib.rs",
+          "path": "addresses/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "base58/src/error.rs",
+          "path": "base58/src/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "base58/src/lib.rs",
+          "path": "base58/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bip158/src/lib.rs",
+          "path": "bip158/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/address/error.rs",
+          "path": "bitcoin/src/address/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/bip158.rs",
+          "path": "bitcoin/src/bip158.rs",
+          "type": "source",
+          "exports": [
+            "bip158"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/block.rs",
+          "path": "bitcoin/src/blockdata/block.rs",
+          "type": "source",
+          "exports": [
+            "block"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/constants.rs",
+          "path": "bitcoin/src/blockdata/constants.rs",
+          "type": "source",
+          "exports": [
+            "constants"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/opcodes.rs",
+          "path": "bitcoin/src/blockdata/opcodes.rs",
+          "type": "source",
+          "exports": [
+            "opcodes"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/borrowed.rs",
+          "path": "bitcoin/src/blockdata/script/borrowed.rs",
+          "type": "source",
+          "exports": [
+            "borrowed"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/instruction.rs",
+          "path": "bitcoin/src/blockdata/script/instruction.rs",
+          "type": "source",
+          "exports": [
+            "instruction"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/owned.rs",
+          "path": "bitcoin/src/blockdata/script/owned.rs",
+          "type": "source",
+          "exports": [
+            "owned"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/push_bytes.rs",
+          "path": "bitcoin/src/blockdata/script/push_bytes.rs",
+          "type": "source",
+          "exports": [
+            "push_bytes"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/witness_program.rs",
+          "path": "bitcoin/src/blockdata/script/witness_program.rs",
+          "type": "source",
+          "exports": [
+            "witness_program"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/script/witness_version.rs",
+          "path": "bitcoin/src/blockdata/script/witness_version.rs",
+          "type": "source",
+          "exports": [
+            "witness_version"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/transaction.rs",
+          "path": "bitcoin/src/blockdata/transaction.rs",
+          "type": "source",
+          "exports": [
+            "transaction"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/blockdata/witness.rs",
+          "path": "bitcoin/src/blockdata/witness.rs",
+          "type": "source",
+          "exports": [
+            "witness"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/encode.rs",
+          "path": "bitcoin/src/consensus/encode.rs",
+          "type": "source",
+          "exports": [
+            "encode"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/error.rs",
+          "path": "bitcoin/src/consensus/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/serde.rs",
+          "path": "bitcoin/src/consensus/serde.rs",
+          "type": "source",
+          "exports": [
+            "serde"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus/verification.rs",
+          "path": "bitcoin/src/consensus/verification.rs",
+          "type": "source",
+          "exports": [
+            "verification"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/consensus_validation.rs",
+          "path": "bitcoin/src/consensus_validation.rs",
+          "type": "source",
+          "exports": [
+            "consensus_validation"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/crypto/key.rs",
+          "path": "bitcoin/src/crypto/key.rs",
+          "type": "source",
+          "exports": [
+            "key"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/crypto/sighash.rs",
+          "path": "bitcoin/src/crypto/sighash.rs",
+          "type": "source",
+          "exports": [
+            "sighash"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/hash_types.rs",
+          "path": "bitcoin/src/hash_types.rs",
+          "type": "source",
+          "exports": [
+            "hash_types"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/internal_macros.rs",
+          "path": "bitcoin/src/internal_macros.rs",
+          "type": "source",
+          "exports": [
+            "internal_macros"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/lib.rs",
+          "path": "bitcoin/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/network/params.rs",
+          "path": "bitcoin/src/network/params.rs",
+          "type": "source",
+          "exports": [
+            "params"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/policy.rs",
+          "path": "bitcoin/src/policy.rs",
+          "type": "source",
+          "exports": [
+            "policy"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/pow.rs",
+          "path": "bitcoin/src/pow.rs",
+          "type": "source",
+          "exports": [
+            "pow"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/merkle_branch/borrowed.rs",
+          "path": "bitcoin/src/taproot/merkle_branch/borrowed.rs",
+          "type": "source",
+          "exports": [
+            "borrowed"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "bitcoin/src/taproot/merkle_branch/buf.rs",
+          "path": "bitcoin/src/taproot/merkle_branch/buf.rs",
+          "type": "source",
+          "exports": [
+            "buf"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "chacha20_poly1305/src/chacha20.rs",
+          "path": "chacha20_poly1305/src/chacha20.rs",
+          "type": "source",
+          "exports": [
+            "chacha20"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "chacha20_poly1305/src/lib.rs",
+          "path": "chacha20_poly1305/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "chacha20_poly1305/src/poly1305.rs",
+          "path": "chacha20_poly1305/src/poly1305.rs",
+          "type": "source",
+          "exports": [
+            "poly1305"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/compact_size.rs",
+          "path": "consensus_encoding/src/compact_size.rs",
+          "type": "source",
+          "exports": [
+            "compact_size"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "consensus_encoding/src/decode/decoders.rs",
+          "path": "consensus_encoding/src/decode/decoders.rs",
+          "type": "source",
+          "exports": [
+            "decoders"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        }
+      ],
+      "metrics": {
+        "totalNodes": 80,
+        "totalRelations": 0,
+        "highImpactNodes": 0,
+        "averageComplexity": 1.3,
+        "circularDependencies": 0
+      },
+      "relations": []
+    }
+  },
+  "conversations": [],
+  "exportMetadata": {
+    "exportedAt": "2026-05-18T13:38:38.338Z",
+    "version": "1.0.0"
+  }
+}

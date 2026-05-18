@@ -1,0 +1,2345 @@
+{
+  "sessionId": "1",
+  "userId": "user_3DqwnJfrouBO8irQgfaAzk29RIG",
+  "issueUrl": "https://github.com/peer-observer/peer-observer/issues/426",
+  "issueTitle": "tools: P2P traffic contract testing and pattern matching",
+  "repository": "peer-observer/peer-observer",
+  "createdAt": "2026-05-17T13:07:25.433Z",
+  "analysisResult": {
+    "logs": [],
+    "plan": {
+      "issue": {
+        "url": "https://github.com/peer-observer/peer-observer/issues/426",
+        "repo": "peer-observer",
+        "type": "feature",
+        "owner": "peer-observer",
+        "state": "open",
+        "title": "tools: P2P traffic contract testing and pattern matching",
+        "author": "0xB10C",
+        "labels": [
+          "help wanted"
+        ],
+        "number": 426,
+        "source": "github-api",
+        "createdAt": "2026-05-06T08:31:25Z",
+        "updatedAt": "2026-05-06T08:31:25Z",
+        "complexity": "low",
+        "description": "@janb84 recelenty suggested to me that it might be interesting to do \"contract testing\" of the P2P messages send between our peer-observer node and our peers. Contract testing is \"a software testing technique that validates interactions between service providers and consumers, ensuring they adhere to a shared \"contract\" (API structure)\" - for us that's the P2P protocol. \n\nThere are at least two ways to go about this:\n\n1. We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.\n2. We collect a bit of P2P traffic between a peer-observer node and a known Bitcoin Core node and extract a \"pattern\" from it. This is something common in network firewalls.\n\nThen, we check real-time traffic and also archived traffic (#121) in a tool against the \"contract\" or \"patter\". One out-come of this could be: \"This node claims to be /Satoshi:31.0.0/\", but it's traffic with us doesn't at all look like a Bitcoin Core node (i.e. fake user_agent). What's going on here?\".\n\nOpening this for discussion - I think there are no concrete tasks to implement right now.",
+        "requirements": [
+          "We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.",
+          "We collect a bit of P2P traffic between a peer-observer node and a known Bitcoin Core node and extract a \"pattern\" from it. This is something common in network firewalls.",
+          "should be followed by an inbound ping from the same peer)"
+        ],
+        "relatedIssues": [
+          121
+        ],
+        "acceptanceCriteria": [],
+        "affectedComponents": [],
+        "discussionHighlights": []
+      },
+      "risks": [
+        {
+          "level": "medium",
+          "impact": "Harder to verify correctness and prevent regressions",
+          "mitigation": [
+            "Create comprehensive test suite",
+            "Add tests before making changes",
+            "Consider adding integration tests"
+          ],
+          "description": "No existing test coverage"
+        }
+      ],
+      "steps": [
+        {
+          "files": [],
+          "title": "Setup and Preparation",
+          "number": 1,
+          "actions": [
+            "Create a new feature branch from main/master",
+            "Read the full issue body and any linked issues or design notes",
+            "Inspect the target repository structure and existing tooling",
+            "Confirm the local checkout matches the issue repository",
+            "Start your repo walkthrough with these likely issue-related files: tools/connectivity-check/README.md, shared/src/protobuf/ebpf_extractor/mod.rs, tools/alerts/src/main.rs, tools/archiver/src/main.rs."
+          ],
+          "pitfalls": [
+            "Do not assume the first candidate file is the correct edit target until you confirm the code path.",
+            "Do not start coding before checking linked issues or design discussion for hidden scope constraints."
+          ],
+          "resources": [
+            {
+              "type": "command",
+              "title": "Create Branch",
+              "content": "git checkout -b bob/issue-426-tools-p2p-traffic-contract-testing-and-p",
+              "language": "bash",
+              "description": "Suggested branch name based on the issue title."
+            },
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "README Context",
+              "content": "# peer-observer\n\nTool to monitor for P2P anomalies and attacks using well-behaving, passive\nBitcoin Core honeynodes (honeypot nodes).\n\n## Components and their interaction\n\nThe peer-observer consists of multiple components. One or more `extractors` that\nextract events from a Bitcoin Core node and multiple `tools` that process the\nextracted data. The `extractors` and `tools` are connected with a [nats.io]-based\nPUB-SUB connection via a NATS server. The exchanged messages are serialized\nprotobuf structures.\n\nThe `ebpf-extractor` uses the Bitcoin Core tracepoints to extract\nevents like received and send P2P messages, open and closed P2P connections, mempool\nchanges, and more. This is implemented using the USDT capabilites of [libbpf-rs].\nThe Bitcoin P2P protocol messages are deserialized using [rust-bitcoin].\n\nThe `rpc-extractor` periodically queries the Bitcoin Core RPC interface using\n[corepc]. Results are published to NATS as RPC events.\n\nThe `p2p-extractor` receives an inbound connection from a Bitcoin node and publishes\nselected P2P measurements as events into a NATS pub-sub queue.\n\nThe `log-extractor` publishes them parsed `debug.log` log messages as events to NATS.\n\nThe tools are written in Rust (or any other language that supports NATS \nand protobuf). They subscribe to the NATS server. For example, the `logger` tool \nsimply prints out all messages that it receives, the `metrics` tool produces prometheus \nmetrics, and the `connectivity-check` tool tests received addresses if they are reachable.",
+              "language": "markdown",
+              "description": "Read this first so you understand the project purpose and contributor workflow."
+            }
+          ],
+          "description": "Review the issue, repository conventions, and any linked design context before writing code.",
+          "dependencies": [],
+          "estimatedMinutes": 20,
+          "validationCriteria": [
+            "Target repository is confirmed",
+            "Linked context is reviewed",
+            "The local environment is ready"
+          ]
+        },
+        {
+          "files": [],
+          "title": "Define the First Narrow Milestone",
+          "number": 2,
+          "actions": [
+            "List candidate sub-problems or contract checks the issue suggests",
+            "Choose the smallest deterministic slice that can ship first",
+            "Mark later work such as profiling, offline analysis, or learned behavior as follow-up milestones",
+            "Write down the explicit scope and non-goals for v1",
+            "Use the candidate files to define scope boundaries, for example protocol definitions in tools/connectivity-check/README.md, shared/src/protobuf/ebpf_extractor/mod.rs and implementation modules in tools/connectivity-check/README.md, shared/src/protobuf/ebpf_extractor/mod.rs."
+          ],
+          "pitfalls": [
+            "Do not bundle archive, replay, profiling, and learned-pattern work into the first change unless the repo already supports it cleanly."
+          ],
+          "resources": [],
+          "description": "Reduce the issue to one reviewable milestone instead of attempting the full roadmap at once.",
+          "dependencies": [
+            1
+          ],
+          "estimatedMinutes": 30,
+          "validationCriteria": [
+            "A narrow v1 scope is documented",
+            "Follow-up milestones are separated from the MVP",
+            "The first milestone is reviewable on its own"
+          ]
+        },
+        {
+          "files": [],
+          "title": "Design the Core Engine Before Adapters",
+          "number": 3,
+          "actions": [
+            "Define a pure state machine or rule engine for the first milestone",
+            "Keep transport input, archive input, and output reporting in thin adapters",
+            "Decide what evidence each alert or finding must retain",
+            "Prefer deterministic rule-based checks for v1 over learned patterns",
+            "If the repo already has adjacent tools or schemas, inspect them first: tools/connectivity-check/README.md, shared/src/protobuf/ebpf_extractor/mod.rs, tools/alerts/src/main.rs."
+          ],
+          "pitfalls": [
+            "Do not let transport code or persistence concerns leak into the rule engine."
+          ],
+          "resources": [],
+          "description": "Keep the reusable rule or state engine separate from transport, storage, and reporting.",
+          "dependencies": [
+            2
+          ],
+          "estimatedMinutes": 45,
+          "validationCriteria": [
+            "Core logic is isolated from IO concerns",
+            "Future live and offline modes can reuse the same engine",
+            "Evidence fields are explicit for every finding type"
+          ]
+        },
+        {
+          "files": [
+            "tools/connectivity-check/README.md",
+            "shared/src/protobuf/ebpf_extractor/mod.rs",
+            "tools/alerts/src/main.rs",
+            "tools/archiver/src/main.rs"
+          ],
+          "title": "Implement the MVP Slice",
+          "number": 4,
+          "actions": [
+            "Implement only the chosen v1 contract or behavior set",
+            "Reuse the project’s existing output and alerting conventions",
+            "Record enough context to explain why a rule fired",
+            "Avoid bundling offline, replay, or profiling work into the first patch unless already trivial",
+            "Treat these as investigation targets rather than confirmed edit points: tools/connectivity-check/README.md, shared/src/protobuf/ebpf_extractor/mod.rs, tools/alerts/src/main.rs, tools/archiver/src/main.rs."
+          ],
+          "pitfalls": [
+            "Treat the listed files as investigation targets in remote mode, not guaranteed final edit locations."
+          ],
+          "resources": [
+            {
+              "path": "tools/connectivity-check/README.md",
+              "type": "file_excerpt",
+              "title": "Current Code: tools/connectivity-check/README.md",
+              "content": "# `connectivity-check` tool\n\n> connects to IP addresses received via `addr(v2)` messages and records the result\n\nA peer-observer tool that checks the connectivity of received addr(v2) message entries\nby connecting to the addresses and trying to do a `version` handshake. The results are\nrecorded in a CSV file. Additionally, the tool offers prometheus metrics about the\nconnection results.\n\n## Example\n\nFor example, connect to a NATS server on 128.0.0.1:1234 and start the metrics server on 127.0.0.1:8220:\n\n```\n$ cargo run --bin connectivity-check -- --nats-address 127.0.0.1:1234 --metrics-address 127.0.0.1:8220\n\nor\n\n$ ./target/[release/debug]/connectivity-check -n 127.0.0.1:1234 --metrics-address 127.0.0.1:8220\n```\n\nThis then outputs something similar to:\n\n```\n$ curl 127.0.0.1:8220/metrics\n...\n# HELP connectivitycheck_addr_successful_connection_tor_exit Number of successful connections to addresses that we received from a Tor exit node.\n# TYPE connectivitycheck_addr_successful_connection_tor_exit counter\nconnectivitycheck_addr_successful_connection_tor_exit{addr_version=\"addrv2\",network=\"IPv4\"} 10\n# HELP connectivitycheck_addr_tried Number of addresses tried.",
+              "language": "markdown",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "path": "shared/src/protobuf/ebpf_extractor/mod.rs",
+              "type": "file_excerpt",
+              "title": "Current Code: shared/src/protobuf/ebpf_extractor/mod.rs",
+              "content": "/// Protobuf types for ebpf-extractor connection tracepoint events.\npub mod connection;\n/// Protobuf types for ebpf-extractor mempool tracepoint events.\npub mod mempool;\n/// Protobuf types for ebpf-extractor p2p message tracepoint events.\npub mod message;\n/// Protobuf types for ebpf-extractor validation tracepoint events.\npub mod validation;\n\n/// Mapping from the ebpf C structs to the Rust protobuf structs.\npub mod ctypes;\n\nuse std::fmt;\n\n// Generated types for ebpf_extractor.proto (EBPFEvent).\ninclude!(concat!(env!(\"OUT_DIR\"), \"/ebpf_extractor.rs\"));\n\nimpl fmt::Display for ebpf::EbpfEvent {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        match self {\n            ebpf::EbpfEvent::Message(message) => write!(f, \"{}\", message),\n            ebpf::EbpfEvent::Connection(connection) => write!(f, \"{}\", connection),\n            ebpf::EbpfEvent::Mempool(mempool) => write!(f, \"{}\", mempool),\n            ebpf::EbpfEvent::Validation(validation) => write!(f, \"{}\", validation),\n        }\n    }\n}",
+              "language": "rust",
+              "description": "Current code excerpt or candidate investigation context."
+            },
+            {
+              "path": "tools/connectivity-check/README.md",
+              "type": "warning",
+              "title": "Insertion Point Detection",
+              "reason": "No stronger structural anchor was detected, so append-at-end is the fallback.",
+              "content": "Insert near line 88 (60% confidence)\nAnchor: end_of_file\nReason: No stronger structural anchor was detected, so append-at-end is the fallback.",
+              "confidence": 0.6,
+              "description": "Best detected insertion point for the generated code."
+            },
+            {
+              "path": "tools/connectivity-check/README.md",
+              "type": "warning",
+              "title": "Conflict Detection",
+              "content": "No conflicting classes, functions, imports, or types detected in the current file excerpt.",
+              "description": "Potential naming or structural conflicts in the target file."
+            },
+            {
+              "path": "tools/connectivity-check/README.md",
+              "type": "warning",
+              "title": "Style Pattern Analysis",
+              "content": "Indentation: \"  \"\nQuote style: double\nSemicolons: disabled\nTrailing commas: disabled",
+              "description": "Detected local repository style signals used to adapt the snippet."
+            },
+            {
+              "path": "tools/connectivity-check/README.md",
+              "type": "code",
+              "title": "Suggested Code To Add",
+              "content": "// TODO(issue #426): implement We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.\n// Add the smallest change here that satisfies the issue objective.\n",
+              "language": "markdown",
+              "description": "Auto-adapted scaffold matched to the detected repo style."
+            },
+            {
+              "path": "tools/connectivity-check/README.md",
+              "type": "diff",
+              "title": "Unified Diff Preview",
+              "content": "--- a/tools/connectivity-check/README.md\n+++ b/tools/connectivity-check/README.md\n@@ -85,3 +85,6 @@\n           Print version\n ```\n \n+// TODO(issue #426): implement We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.\n+// Add the smallest change here that satisfies the issue objective.\n+",
+              "language": "diff",
+              "description": "Git-apply compatible insertion diff with nearby context."
+            },
+            {
+              "path": "tools/connectivity-check/README.md",
+              "type": "warning",
+              "title": "Code Path Hints",
+              "content": "Exports in this file: README",
+              "description": "Likely target symbol, callers, and nearby dependencies worth tracing before editing."
+            }
+          ],
+          "description": "Ship the first milestone using existing repository conventions for logs, alerts, or outputs.",
+          "dependencies": [
+            3
+          ],
+          "estimatedMinutes": 90,
+          "validationCriteria": [
+            "The first milestone is implemented end-to-end",
+            "Output matches project conventions",
+            "The patch remains narrowly scoped"
+          ]
+        },
+        {
+          "files": [
+            "shared/tests/protobuf/ebpf_extractor/mod.rs",
+            "tools/alerts/tests/alerts.rs",
+            "tools/archiver/tests/archiver.rs"
+          ],
+          "title": "Add Deterministic Tests",
+          "number": 5,
+          "actions": [
+            "Add synthetic tests for valid flows",
+            "Add tests for missing responses, out-of-order inputs, and duplicate events",
+            "Add cleanup tests for disconnects or session termination",
+            "Use replayable or archived examples once the core path is working",
+            "Start by checking whether tests already live near: shared/tests/protobuf/ebpf_extractor/mod.rs, tools/alerts/tests/alerts.rs, tools/archiver/tests/archiver.rs."
+          ],
+          "pitfalls": [
+            "Do not invent a new test style if the repo already has a pattern for integration or replay-driven testing."
+          ],
+          "resources": [
+            {
+              "path": "shared/tests/protobuf/ebpf_extractor/mod.rs",
+              "type": "code",
+              "title": "Suggested Test Scaffold",
+              "content": "#[test]\nfn issue_426_we_define_a_contract_bas() {\n    // arrange: build the smallest input or event sequence from tools/connectivity-check/README.md\n    // act: execute the code path under test\n    // assert: prove We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.\n    assert!(true);\n}\n",
+              "language": "rust",
+              "description": "Generated from acceptance criteria and adapted to the detected local test style when possible."
+            }
+          ],
+          "description": "Test the happy path, invalid sequences, and cleanup behavior before broadening the rules.",
+          "dependencies": [
+            4
+          ],
+          "estimatedMinutes": 60,
+          "validationCriteria": [
+            "Happy-path and failure-path tests exist",
+            "Cleanup behavior is covered",
+            "The MVP can be validated without live traffic"
+          ]
+        },
+        {
+          "files": [
+            "README.md",
+            "docs/**"
+          ],
+          "title": "Document Scope and Follow-up Milestones",
+          "number": 6,
+          "actions": [
+            "Document the supported contracts or behaviors",
+            "Record false-positive caveats and observability limits",
+            "List next milestones such as offline analysis, replay support, or behavior profiling",
+            "Prepare the PR description with explicit scope boundaries"
+          ],
+          "pitfalls": [
+            "Do not over-document speculative future work as if it is already implemented."
+          ],
+          "resources": [
+            {
+              "path": "README.md",
+              "type": "file_excerpt",
+              "title": "Current Code: README.md",
+              "content": "# peer-observer\n\nTool to monitor for P2P anomalies and attacks using well-behaving, passive\nBitcoin Core honeynodes (honeypot nodes).\n\n## Components and their interaction\n\nThe peer-observer consists of multiple components. One or more `extractors` that\nextract events from a Bitcoin Core node and multiple `tools` that process the\nextracted data. The `extractors` and `tools` are connected with a [nats.io]-based\nPUB-SUB connection via a NATS server. The exchanged messages are serialized\nprotobuf structures.\n\nThe `ebpf-extractor` uses the Bitcoin Core tracepoints to extract\nevents like received and send P2P messages, open and closed P2P connections, mempool\nchanges, and more. This is implemented using the USDT capabilites of [libbpf-rs].\nThe Bitcoin P2P protocol messages are deserialized using [rust-bitcoin].\n\nThe `rpc-extractor` periodically queries the Bitcoin Core RPC interface using\n[corepc]. Results are published to NATS as RPC events.\n\nThe `p2p-extractor` receives an inbound connection from a Bitcoin node and publishes\nselected P2P measurements as events into a NATS pub-sub queue.\n\nThe `log-extractor` publishes them parsed `debug.log` log messages as events to NATS.\n\nThe tools are written in Rust (or any other language that supports NATS \nand protobuf). They subscribe to the NATS server. For example, the `logger` tool \nsimply prints out all messages that it receives, the `metrics` tool produces prometheus \nmetrics, and the `connectivity-check` tool tests received addresses if they are reachable.",
+              "language": "markdown",
+              "description": "Current code excerpt or candidate investigation context."
+            }
+          ],
+          "description": "Make it clear what shipped now and what remains for later milestones.",
+          "dependencies": [
+            5
+          ],
+          "estimatedMinutes": 25,
+          "validationCriteria": [
+            "Supported behavior is documented",
+            "Known limitations are explicit",
+            "Follow-up milestones are separated from the MVP"
+          ]
+        }
+      ],
+      "prDraft": {
+        "tests": [
+          "mod.rs or nearest existing behavior test",
+          "manual simulation or runtime verification of the changed flow"
+        ],
+        "title": "Add we define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing",
+        "summary": [
+          "updates tools/connectivity-check/README.md to address We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.",
+          "adds regression coverage for the changed behavior",
+          "documents the expected behavior where needed"
+        ]
+      },
+      "evidence": [
+        {
+          "label": "inspect repository structure",
+          "detail": "30 directories analyzed"
+        },
+        {
+          "label": "read README context",
+          "detail": "Tooling to monitor for P2P anomalies and attacks using Bitcoin Core honey pot nodes"
+        },
+        {
+          "label": "identify likely affected files",
+          "detail": "5 candidate files ranked"
+        },
+        {
+          "label": "generate implementation roadmap",
+          "detail": "remote repository guidance with step validation"
+        },
+        {
+          "label": "detect insertion point",
+          "detail": "best-effort semantic and structural insertion analysis"
+        },
+        {
+          "label": "produce diff preview",
+          "detail": "git-apply compatible preview when file content is available"
+        }
+      ],
+      "warnings": [
+        "No concrete repository files were identified from the issue text. Treat this as a design-first contribution plan."
+      ],
+      "riskSummary": {
+        "level": "medium",
+        "reason": "No existing test coverage"
+      },
+      "reviewPoints": [
+        "After step 5: Review test coverage",
+        "After step 6: Final code review before PR"
+      ],
+      "testStrategy": {
+        "e2eTests": [
+          "Test complete user workflow",
+          "Verify all acceptance criteria"
+        ],
+        "unitTests": [],
+        "criticalPaths": [],
+        "coverageTarget": 80,
+        "integrationTests": []
+      },
+      "openQuestions": [
+        "Which modules or directories are intended to own the first milestone of this issue?",
+        "What concrete success conditions would let a maintainer accept the first implementation?",
+        "What work should be explicitly deferred from v1 so the first contribution stays narrowly reviewable?"
+      ],
+      "prerequisites": [
+        "Review related issues: #121",
+        "Ensure development environment is set up",
+        "Have necessary access permissions",
+        "Understand the existing codebase architecture"
+      ],
+      "estimatedHours": 5,
+      "projectOverview": [
+        "Tooling to monitor for P2P anomalies and attacks using Bitcoin Core honey pot nodes",
+        "Project type: Tooling/CLI",
+        "Tech stack: Rust",
+        "Tool to monitor for P2P anomalies and attacks using well-behaving, passive",
+        "Bitcoin Core honeynodes (honeypot nodes).",
+        "Likely entry points: extractors/ebpf/src/main.rs, extractors/log/src/main.rs, extractors/p2p/src/main.rs"
+      ],
+      "rollbackStrategy": [
+        "Keep the feature branch until changes are verified in production",
+        "Tag the commit before merging for easy revert",
+        "Document rollback procedure in PR description"
+      ],
+      "projectActionGuide": [
+        {
+          "title": "Orient Yourself",
+          "actions": [
+            "Start with the GitHub README, repo description, and issue discussion to confirm the project’s purpose and contributor expectations.",
+            "Open the likely entry points first: extractors/ebpf/src/main.rs, extractors/log/src/main.rs, extractors/p2p/src/main.rs.",
+            "Map the top-level working areas before coding: tools, tools/metrics, tools/metrics/dashboards."
+          ]
+        },
+        {
+          "title": "Run the Project Correctly",
+          "actions": [
+            "Run `cargo test` and `cargo check` early so you know the repo’s current baseline."
+          ]
+        },
+        {
+          "title": "Trace the Code Path",
+          "actions": [
+            "Inspect CLI/tool entrypoints and the internal engine separately so transport and business logic stay decoupled.",
+            "Follow existing naming, directory, and test placement conventions instead of introducing a new layout for this issue."
+          ]
+        },
+        {
+          "title": "Scope the Issue Change",
+          "actions": [
+            "Translate \"tools: P2P traffic contract testing and pattern matching\" into one small code path to change first, then expand only if the tests and issue discussion require it.",
+            "Update the nearest existing tests or create a focused regression test next to the implementation area rather than adding broad new coverage first.",
+            "Keep a short notes file or PR draft listing assumptions, repo-specific constraints, and any follow-up tasks that should not be bundled into v1."
+          ]
+        }
+      ],
+      "suggestedCodeChanges": [
+        "Inspect `tools/connectivity-check/README.md` first as a likely starting point for the behavior implied by: We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.",
+        "Check `shared/src/protobuf/ebpf_extractor/mod.rs` for wiring, exports, or shared helpers that must change alongside the main implementation.",
+        "Add or update regression coverage around `shared/tests/protobuf/ebpf_extractor/mod.rs` to lock in the expected behavior for this issue."
+      ],
+      "recommendedStartingPoints": [
+        {
+          "path": "tools/connectivity-check/README.md",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a good investigation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "shared/src/protobuf/ebpf_extractor/mod.rs",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a good investigation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "tools/alerts/src/main.rs",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a good investigation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "tools/archiver/src/main.rs",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a good investigation target.",
+          "confidence": "medium"
+        },
+        {
+          "path": "tools/replayer/src/main.rs",
+          "reason": "Repository file path, naming patterns, and issue keywords suggest this is a good investigation target.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    "repoInfo": {
+      "name": "peer-observer",
+      "path": "peer-observer/peer-observer",
+      "slug": "peer-observer/peer-observer",
+      "type": "Tooling/CLI",
+      "source": "remote",
+      "overview": "Tooling to monitor for P2P anomalies and attacks using Bitcoin Core honey pot nodes",
+      "patterns": [],
+      "structure": {
+        "rootFiles": [
+          ".gitattributes",
+          ".gitignore",
+          "Cargo.lock",
+          "Cargo.toml",
+          "LICENSE",
+          "README.md",
+          "shell.nix"
+        ],
+        "directories": [
+          {
+            "path": "tools",
+            "purpose": "Command-line tools",
+            "fileCount": 118,
+            "importance": "high"
+          },
+          {
+            "path": "tools/metrics",
+            "purpose": "General purpose",
+            "fileCount": 68,
+            "importance": "high"
+          },
+          {
+            "path": "tools/metrics/dashboards",
+            "purpose": "General purpose",
+            "fileCount": 60,
+            "importance": "high"
+          },
+          {
+            "path": "shared",
+            "purpose": "General purpose",
+            "fileCount": 33,
+            "importance": "high"
+          },
+          {
+            "path": "extractors",
+            "purpose": "General purpose",
+            "fileCount": 31,
+            "importance": "high"
+          },
+          {
+            "path": "shared/src",
+            "purpose": "Source code",
+            "fileCount": 23,
+            "importance": "high"
+          },
+          {
+            "path": "tools/websocket",
+            "purpose": "General purpose",
+            "fileCount": 21,
+            "importance": "high"
+          },
+          {
+            "path": "tools/websocket/www",
+            "purpose": "General purpose",
+            "fileCount": 15,
+            "importance": "medium"
+          },
+          {
+            "path": "shared/src/protobuf",
+            "purpose": "General purpose",
+            "fileCount": 12,
+            "importance": "medium"
+          },
+          {
+            "path": "protobuf",
+            "purpose": "General purpose",
+            "fileCount": 11,
+            "importance": "medium"
+          },
+          {
+            "path": "extractors/ebpf",
+            "purpose": "General purpose",
+            "fileCount": 10,
+            "importance": "medium"
+          },
+          {
+            "path": "extractors/rpc",
+            "purpose": "General purpose",
+            "fileCount": 9,
+            "importance": "medium"
+          },
+          {
+            "path": "shared/ip-lists",
+            "purpose": "General purpose",
+            "fileCount": 8,
+            "importance": "medium"
+          },
+          {
+            "path": "tools/alerts",
+            "purpose": "General purpose",
+            "fileCount": 7,
+            "importance": "medium"
+          },
+          {
+            "path": "tools/archiver",
+            "purpose": "General purpose",
+            "fileCount": 7,
+            "importance": "medium"
+          },
+          {
+            "path": "extractors/ebpf/src",
+            "purpose": "Source code",
+            "fileCount": 6,
+            "importance": "medium"
+          },
+          {
+            "path": "extractors/log",
+            "purpose": "General purpose",
+            "fileCount": 6,
+            "importance": "medium"
+          },
+          {
+            "path": "extractors/p2p",
+            "purpose": "General purpose",
+            "fileCount": 6,
+            "importance": "medium"
+          },
+          {
+            "path": "tools/logger",
+            "purpose": "General purpose",
+            "fileCount": 6,
+            "importance": "medium"
+          },
+          {
+            "path": "tools/metrics/src",
+            "purpose": "Source code",
+            "fileCount": 5,
+            "importance": "low"
+          },
+          {
+            "path": ".github",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "extractors/rpc/src",
+            "purpose": "Source code",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "protobuf/ebpf_extractor",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "shared/src/testing",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "tools/alerts/src",
+            "purpose": "Source code",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "tools/connectivity-check",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "tools/replayer",
+            "purpose": "General purpose",
+            "fileCount": 4,
+            "importance": "low"
+          },
+          {
+            "path": "extractors/log/src",
+            "purpose": "Source code",
+            "fileCount": 3,
+            "importance": "low"
+          },
+          {
+            "path": "extractors/p2p/src",
+            "purpose": "Source code",
+            "fileCount": 3,
+            "importance": "low"
+          },
+          {
+            "path": "extractors/rpc/tests",
+            "purpose": "Tests",
+            "fileCount": 3,
+            "importance": "low"
+          }
+        ],
+        "entryPoints": [
+          "extractors/ebpf/src/main.rs",
+          "extractors/log/src/main.rs",
+          "extractors/p2p/src/main.rs",
+          "extractors/rpc/src/main.rs",
+          "shared/src/metricserver.rs",
+          "shared/src/testing/nats_server.rs",
+          "tools/alerts/src/main.rs",
+          "tools/archiver/src/main.rs",
+          "tools/connectivity-check/src/main.rs",
+          "tools/logger/src/main.rs"
+        ],
+        "keyComponents": [
+          {
+            "path": "shared/src/protobuf/ebpf_extractor/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/alerts/src/main.rs",
+            "type": "tool",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/archiver/src/main.rs",
+            "type": "tool",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/replayer/src/main.rs",
+            "type": "tool",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/ebpf/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/log/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/p2p/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/rpc/src/main.rs",
+            "type": "source",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/metricserver.rs",
+            "type": "source",
+            "exports": [
+              "metricserver"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/bitcoin_primitives.rs",
+            "type": "source",
+            "exports": [
+              "bitcoin_primitives"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/ebpf_extractor/connection.rs",
+            "type": "source",
+            "exports": [
+              "connection"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/ebpf_extractor/ctypes.rs",
+            "type": "source",
+            "exports": [
+              "ctypes"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/ebpf_extractor/mempool.rs",
+            "type": "source",
+            "exports": [
+              "mempool"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/ebpf_extractor/message.rs",
+            "type": "source",
+            "exports": [
+              "message"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/ebpf_extractor/validation.rs",
+            "type": "source",
+            "exports": [
+              "validation"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/event.rs",
+            "type": "source",
+            "exports": [
+              "event"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/log_extractor.rs",
+            "type": "source",
+            "exports": [
+              "log_extractor"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/p2p_extractor.rs",
+            "type": "source",
+            "exports": [
+              "p2p_extractor"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/protobuf/rpc_extractor.rs",
+            "type": "source",
+            "exports": [
+              "rpc_extractor"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/alerts/Cargo.toml",
+            "type": "tool",
+            "exports": [
+              "Cargo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/alerts/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/alerts/src/alerter.rs",
+            "type": "tool",
+            "exports": [
+              "alerter"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/alerts/src/error.rs",
+            "type": "tool",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/alerts/src/lib.rs",
+            "type": "tool",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/archiver/Cargo.toml",
+            "type": "tool",
+            "exports": [
+              "Cargo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/archiver/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/archiver/src/error.rs",
+            "type": "tool",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/archiver/src/lib.rs",
+            "type": "tool",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/connectivity-check/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/connectivity-check/src/main.rs",
+            "type": "tool",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/logger/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/logger/src/main.rs",
+            "type": "tool",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/metrics/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/metrics/src/main.rs",
+            "type": "tool",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/replayer/Cargo.toml",
+            "type": "tool",
+            "exports": [
+              "Cargo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/replayer/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/replayer/src/lib.rs",
+            "type": "tool",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/src/main.rs",
+            "type": "tool",
+            "exports": [
+              "main"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/ebpf/src/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/ebpf/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/log/src/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/log/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/p2p/src/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/p2p/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/rpc/src/error.rs",
+            "type": "source",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/rpc/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/rpc/src/metrics.rs",
+            "type": "source",
+            "exports": [
+              "metrics"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/lib.rs",
+            "type": "source",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/log_matchers.rs",
+            "type": "source",
+            "exports": [
+              "log_matchers"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/nats_subjects.rs",
+            "type": "source",
+            "exports": [
+              "nats_subjects"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/nats_util.rs",
+            "type": "utility",
+            "exports": [
+              "nats_util"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/testing/mod.rs",
+            "type": "source",
+            "exports": [
+              "mod"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/testing/nats_server.rs",
+            "type": "source",
+            "exports": [
+              "nats_server"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "shared/src/util.rs",
+            "type": "utility",
+            "exports": [
+              "util"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/alerts/tests/integration.rs",
+            "type": "tool",
+            "exports": [
+              "integration"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/archiver/tests/integration.rs",
+            "type": "tool",
+            "exports": [
+              "integration"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/connectivity-check/Cargo.toml",
+            "type": "tool",
+            "exports": [
+              "Cargo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/connectivity-check/src/metrics.rs",
+            "type": "tool",
+            "exports": [
+              "metrics"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/logger/Cargo.toml",
+            "type": "tool",
+            "exports": [
+              "Cargo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/logger/src/error.rs",
+            "type": "tool",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/logger/src/lib.rs",
+            "type": "tool",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/metrics/Cargo.toml",
+            "type": "tool",
+            "exports": [
+              "Cargo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/metrics/src/error.rs",
+            "type": "tool",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/metrics/src/lib.rs",
+            "type": "tool",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/metrics/src/metrics.rs",
+            "type": "tool",
+            "exports": [
+              "metrics"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/metrics/src/stat_util.rs",
+            "type": "utility",
+            "exports": [
+              "stat_util"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/Cargo.toml",
+            "type": "tool",
+            "exports": [
+              "Cargo"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/src/error.rs",
+            "type": "tool",
+            "exports": [
+              "error"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/src/lib.rs",
+            "type": "tool",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/www/js/bootstrap.min.js",
+            "type": "tool",
+            "exports": [
+              "bootstrap.min"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/www/js/d3@7.js",
+            "type": "tool",
+            "exports": [
+              "d3@7"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/www/js/lib.js",
+            "type": "tool",
+            "exports": [
+              "lib"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/www/js/plot@0.6.js",
+            "type": "tool",
+            "exports": [
+              "plot@0.6"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "tools/websocket/www/js/websocket-picker.js",
+            "type": "tool",
+            "exports": [
+              "websocket-picker"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/ebpf/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/log/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          },
+          {
+            "path": "extractors/p2p/README.md",
+            "type": "documentation",
+            "exports": [
+              "README"
+            ],
+            "dependencies": []
+          }
+        ]
+      },
+      "techStack": {
+        "language": "Rust",
+        "packageManager": "cargo"
+      },
+      "highlights": [
+        "Tooling to monitor for P2P anomalies and attacks using Bitcoin Core honey pot nodes",
+        "Tool to monitor for P2P anomalies and attacks using well-behaving, passive",
+        "Bitcoin Core honeynodes (honeypot nodes).",
+        "Components and their interaction"
+      ],
+      "conventions": [],
+      "dependencies": {
+        "production": {},
+        "development": {},
+        "peerDependencies": {}
+      },
+      "defaultBranch": "master"
+    },
+    "issueInfo": {
+      "url": "https://github.com/peer-observer/peer-observer/issues/426",
+      "repo": "peer-observer",
+      "type": "feature",
+      "owner": "peer-observer",
+      "state": "open",
+      "title": "tools: P2P traffic contract testing and pattern matching",
+      "author": "0xB10C",
+      "labels": [
+        "help wanted"
+      ],
+      "number": 426,
+      "source": "github-api",
+      "createdAt": "2026-05-06T08:31:25Z",
+      "updatedAt": "2026-05-06T08:31:25Z",
+      "complexity": "low",
+      "description": "@janb84 recelenty suggested to me that it might be interesting to do \"contract testing\" of the P2P messages send between our peer-observer node and our peers. Contract testing is \"a software testing technique that validates interactions between service providers and consumers, ensuring they adhere to a shared \"contract\" (API structure)\" - for us that's the P2P protocol. \n\nThere are at least two ways to go about this:\n\n1. We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.\n2. We collect a bit of P2P traffic between a peer-observer node and a known Bitcoin Core node and extract a \"pattern\" from it. This is something common in network firewalls.\n\nThen, we check real-time traffic and also archived traffic (#121) in a tool against the \"contract\" or \"patter\". One out-come of this could be: \"This node claims to be /Satoshi:31.0.0/\", but it's traffic with us doesn't at all look like a Bitcoin Core node (i.e. fake user_agent). What's going on here?\".\n\nOpening this for discussion - I think there are no concrete tasks to implement right now.",
+      "requirements": [
+        "We define a \"contract\" based on Bitcoin P2P protocol knowledge (e.g. an outbound ping should be followed by an inbound ping from the same peer). This is a technique used in API testing.",
+        "We collect a bit of P2P traffic between a peer-observer node and a known Bitcoin Core node and extract a \"pattern\" from it. This is something common in network firewalls.",
+        "should be followed by an inbound ping from the same peer)"
+      ],
+      "relatedIssues": [
+        121
+      ],
+      "acceptanceCriteria": [],
+      "affectedComponents": [],
+      "discussionHighlights": []
+    },
+    "dependencyMap": {
+      "nodes": [
+        {
+          "id": "shared/src/protobuf/ebpf_extractor/mod.rs",
+          "path": "shared/src/protobuf/ebpf_extractor/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/mod.rs",
+          "path": "shared/src/protobuf/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/alerts/src/main.rs",
+          "path": "tools/alerts/src/main.rs",
+          "type": "tool",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/archiver/src/main.rs",
+          "path": "tools/archiver/src/main.rs",
+          "type": "tool",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/replayer/src/main.rs",
+          "path": "tools/replayer/src/main.rs",
+          "type": "tool",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/ebpf/src/main.rs",
+          "path": "extractors/ebpf/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/log/src/main.rs",
+          "path": "extractors/log/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/p2p/src/main.rs",
+          "path": "extractors/p2p/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/rpc/src/main.rs",
+          "path": "extractors/rpc/src/main.rs",
+          "type": "source",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/metricserver.rs",
+          "path": "shared/src/metricserver.rs",
+          "type": "source",
+          "exports": [
+            "metricserver"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/bitcoin_primitives.rs",
+          "path": "shared/src/protobuf/bitcoin_primitives.rs",
+          "type": "source",
+          "exports": [
+            "bitcoin_primitives"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/ebpf_extractor/connection.rs",
+          "path": "shared/src/protobuf/ebpf_extractor/connection.rs",
+          "type": "source",
+          "exports": [
+            "connection"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/ebpf_extractor/ctypes.rs",
+          "path": "shared/src/protobuf/ebpf_extractor/ctypes.rs",
+          "type": "source",
+          "exports": [
+            "ctypes"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/ebpf_extractor/mempool.rs",
+          "path": "shared/src/protobuf/ebpf_extractor/mempool.rs",
+          "type": "source",
+          "exports": [
+            "mempool"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/ebpf_extractor/message.rs",
+          "path": "shared/src/protobuf/ebpf_extractor/message.rs",
+          "type": "source",
+          "exports": [
+            "message"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/ebpf_extractor/validation.rs",
+          "path": "shared/src/protobuf/ebpf_extractor/validation.rs",
+          "type": "source",
+          "exports": [
+            "validation"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/event.rs",
+          "path": "shared/src/protobuf/event.rs",
+          "type": "source",
+          "exports": [
+            "event"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/log_extractor.rs",
+          "path": "shared/src/protobuf/log_extractor.rs",
+          "type": "source",
+          "exports": [
+            "log_extractor"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/p2p_extractor.rs",
+          "path": "shared/src/protobuf/p2p_extractor.rs",
+          "type": "source",
+          "exports": [
+            "p2p_extractor"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/protobuf/rpc_extractor.rs",
+          "path": "shared/src/protobuf/rpc_extractor.rs",
+          "type": "source",
+          "exports": [
+            "rpc_extractor"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/alerts/Cargo.toml",
+          "path": "tools/alerts/Cargo.toml",
+          "type": "tool",
+          "exports": [
+            "Cargo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/alerts/README.md",
+          "path": "tools/alerts/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/alerts/src/alerter.rs",
+          "path": "tools/alerts/src/alerter.rs",
+          "type": "tool",
+          "exports": [
+            "alerter"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/alerts/src/error.rs",
+          "path": "tools/alerts/src/error.rs",
+          "type": "tool",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/alerts/src/lib.rs",
+          "path": "tools/alerts/src/lib.rs",
+          "type": "tool",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/archiver/Cargo.toml",
+          "path": "tools/archiver/Cargo.toml",
+          "type": "tool",
+          "exports": [
+            "Cargo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/archiver/README.md",
+          "path": "tools/archiver/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/archiver/src/error.rs",
+          "path": "tools/archiver/src/error.rs",
+          "type": "tool",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/archiver/src/lib.rs",
+          "path": "tools/archiver/src/lib.rs",
+          "type": "tool",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/connectivity-check/README.md",
+          "path": "tools/connectivity-check/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/connectivity-check/src/main.rs",
+          "path": "tools/connectivity-check/src/main.rs",
+          "type": "tool",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/logger/README.md",
+          "path": "tools/logger/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/logger/src/main.rs",
+          "path": "tools/logger/src/main.rs",
+          "type": "tool",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/metrics/README.md",
+          "path": "tools/metrics/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/metrics/src/main.rs",
+          "path": "tools/metrics/src/main.rs",
+          "type": "tool",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/replayer/Cargo.toml",
+          "path": "tools/replayer/Cargo.toml",
+          "type": "tool",
+          "exports": [
+            "Cargo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/replayer/README.md",
+          "path": "tools/replayer/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/replayer/src/lib.rs",
+          "path": "tools/replayer/src/lib.rs",
+          "type": "tool",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/README.md",
+          "path": "tools/websocket/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/src/main.rs",
+          "path": "tools/websocket/src/main.rs",
+          "type": "tool",
+          "exports": [
+            "main"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/ebpf/src/error.rs",
+          "path": "extractors/ebpf/src/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/ebpf/src/lib.rs",
+          "path": "extractors/ebpf/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/log/src/error.rs",
+          "path": "extractors/log/src/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/log/src/lib.rs",
+          "path": "extractors/log/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/p2p/src/error.rs",
+          "path": "extractors/p2p/src/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/p2p/src/lib.rs",
+          "path": "extractors/p2p/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/rpc/src/error.rs",
+          "path": "extractors/rpc/src/error.rs",
+          "type": "source",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/rpc/src/lib.rs",
+          "path": "extractors/rpc/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/rpc/src/metrics.rs",
+          "path": "extractors/rpc/src/metrics.rs",
+          "type": "source",
+          "exports": [
+            "metrics"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/lib.rs",
+          "path": "shared/src/lib.rs",
+          "type": "source",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/log_matchers.rs",
+          "path": "shared/src/log_matchers.rs",
+          "type": "source",
+          "exports": [
+            "log_matchers"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/nats_subjects.rs",
+          "path": "shared/src/nats_subjects.rs",
+          "type": "source",
+          "exports": [
+            "nats_subjects"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/nats_util.rs",
+          "path": "shared/src/nats_util.rs",
+          "type": "utility",
+          "exports": [
+            "nats_util"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/testing/mod.rs",
+          "path": "shared/src/testing/mod.rs",
+          "type": "source",
+          "exports": [
+            "mod"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/testing/nats_server.rs",
+          "path": "shared/src/testing/nats_server.rs",
+          "type": "source",
+          "exports": [
+            "nats_server"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "shared/src/util.rs",
+          "path": "shared/src/util.rs",
+          "type": "utility",
+          "exports": [
+            "util"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/alerts/tests/integration.rs",
+          "path": "tools/alerts/tests/integration.rs",
+          "type": "tool",
+          "exports": [
+            "integration"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/archiver/tests/integration.rs",
+          "path": "tools/archiver/tests/integration.rs",
+          "type": "tool",
+          "exports": [
+            "integration"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/connectivity-check/Cargo.toml",
+          "path": "tools/connectivity-check/Cargo.toml",
+          "type": "tool",
+          "exports": [
+            "Cargo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/connectivity-check/src/metrics.rs",
+          "path": "tools/connectivity-check/src/metrics.rs",
+          "type": "tool",
+          "exports": [
+            "metrics"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/logger/Cargo.toml",
+          "path": "tools/logger/Cargo.toml",
+          "type": "tool",
+          "exports": [
+            "Cargo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/logger/src/error.rs",
+          "path": "tools/logger/src/error.rs",
+          "type": "tool",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/logger/src/lib.rs",
+          "path": "tools/logger/src/lib.rs",
+          "type": "tool",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/metrics/Cargo.toml",
+          "path": "tools/metrics/Cargo.toml",
+          "type": "tool",
+          "exports": [
+            "Cargo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/metrics/src/error.rs",
+          "path": "tools/metrics/src/error.rs",
+          "type": "tool",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/metrics/src/lib.rs",
+          "path": "tools/metrics/src/lib.rs",
+          "type": "tool",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/metrics/src/metrics.rs",
+          "path": "tools/metrics/src/metrics.rs",
+          "type": "tool",
+          "exports": [
+            "metrics"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/metrics/src/stat_util.rs",
+          "path": "tools/metrics/src/stat_util.rs",
+          "type": "utility",
+          "exports": [
+            "stat_util"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/Cargo.toml",
+          "path": "tools/websocket/Cargo.toml",
+          "type": "tool",
+          "exports": [
+            "Cargo"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/src/error.rs",
+          "path": "tools/websocket/src/error.rs",
+          "type": "tool",
+          "exports": [
+            "error"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/src/lib.rs",
+          "path": "tools/websocket/src/lib.rs",
+          "type": "tool",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/www/js/bootstrap.min.js",
+          "path": "tools/websocket/www/js/bootstrap.min.js",
+          "type": "tool",
+          "exports": [
+            "bootstrap.min"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/www/js/d3@7.js",
+          "path": "tools/websocket/www/js/d3@7.js",
+          "type": "tool",
+          "exports": [
+            "d3@7"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/www/js/lib.js",
+          "path": "tools/websocket/www/js/lib.js",
+          "type": "tool",
+          "exports": [
+            "lib"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/www/js/plot@0.6.js",
+          "path": "tools/websocket/www/js/plot@0.6.js",
+          "type": "tool",
+          "exports": [
+            "plot@0.6"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "tools/websocket/www/js/websocket-picker.js",
+          "path": "tools/websocket/www/js/websocket-picker.js",
+          "type": "tool",
+          "exports": [
+            "websocket-picker"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "README.md",
+          "path": "README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/ebpf/README.md",
+          "path": "extractors/ebpf/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/log/README.md",
+          "path": "extractors/log/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        },
+        {
+          "id": "extractors/p2p/README.md",
+          "path": "extractors/p2p/README.md",
+          "type": "documentation",
+          "exports": [
+            "README"
+          ],
+          "complexity": 1.3,
+          "dependents": [],
+          "changeImpact": "low",
+          "dependencies": []
+        }
+      ],
+      "metrics": {
+        "totalNodes": 80,
+        "totalRelations": 0,
+        "highImpactNodes": 0,
+        "averageComplexity": 1.3,
+        "circularDependencies": 0
+      },
+      "relations": []
+    }
+  },
+  "conversations": [],
+  "exportMetadata": {
+    "exportedAt": "2026-05-18T13:38:38.339Z",
+    "version": "1.0.0"
+  }
+}
