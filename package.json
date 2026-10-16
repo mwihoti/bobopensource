@@ -37,7 +37,7 @@
     "yaml": "^2.3.4"
   },
   "devDependencies": {
-    "next": "16.2.6",
+    "next": "16.3.8",
     "@types/node": "^20.11.5",
     "@types/inquirer": "^8.2.10",
     "typescript": "^5.3.3",
